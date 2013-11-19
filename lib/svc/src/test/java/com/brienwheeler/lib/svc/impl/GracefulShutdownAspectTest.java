@@ -51,7 +51,10 @@ public class GracefulShutdownAspectTest
 		}
 		catch (ServiceStateException e)
 		{
-			Assert.assertTrue(Thread.currentThread().isInterrupted());
+			// test but also clear interrupted status because on Linux
+			// the test thread will remain in interrupted state, causing subsequent
+			// tests to fail
+			Assert.assertTrue(Thread.currentThread().interrupted());
 			throw e;
 		}
 	}

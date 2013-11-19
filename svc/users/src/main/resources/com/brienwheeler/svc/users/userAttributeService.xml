@@ -1,0 +1,14 @@
+<beans
+	xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd"
+	>
+
+	<import resource="classpath:com/brienwheeler/lib/db/appTransactionManager.xml"/>
+	
+	<bean id="com.brienwheeler.svc.users.userAttributeService"
+			class="com.brienwheeler.svc.users.impl.UserAttributeService">
+		<property name="persistentAttributeDao"><bean class="com.brienwheeler.svc.users.impl.UserAttributeDao"/></property>		
+	</bean>
+
+</beans>

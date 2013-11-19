@@ -1,0 +1,463 @@
+<html>
+<head></head>
+<body>
+	<h1>Purpose</h1>
+		<p>The software in this toolkit was developed with the following goals:</p>
+		<ul>
+			<li>To make it easy to bootstrap a Spring MVC / Java / Hibernate web application by providing boilerplate configuration of application and database</li>
+			<li>To facilitate development of modularized business logic where each business service encapsulates all its required domain objects, data access, and logic</li>
+			<li>To promote layered service development where services depend on other services</li>
+			<li>To encourage robust, graceful shutdown of services</li>
+			<li>To make it trivially easy to create operational visibility through graphing and monitoring of critical business KPIs</li>
+		</ul>
+		
+	<h1>Organizing Philosophy</h1>
+		<p>The software in this toolkit is conceptually organized into libraries, services, applications, and distributions.  These four high-level categories are strictly layered – services may depend on libraries and other services, but libraries may only depend on other libraries.  Applications may depend on services and libraries, and distributions may depend on applications, services, and libraries.</p>
+		<h2>Libraries</h2>
+			<p>Libraries are collections of related functionality that conform to certain guidelines.  Libraries generally exist for one or more of the following reasons:</p>
+			<ul>
+				<li>Prevent repetition and facilitate easy inclusion of common support functions and configuration</li>
+				<li>Centralize functionality useful to a broad variety of services and applications</li>
+				<li>Wrap system or external classes and libraries to enforce best practices</li>
+				<li>Provide flexible models of interaction that can be controlled by consuming classes</li>
+			</ul>
+			<p>Libraries are not guaranteed special handling during startup and shutdown, and as such should not create and manage internal resources that require graceful shutdown processing to stop and/or release.  With very few exceptions, all library code execution should be performed on the method's calling thread and should not assume or require any particular user interaction model (command line, headless server, web app, etc.).</p>
+			<p>Libraries may depend on other libraries, but circular dependencies are not allowed.  In general, circular dependencies indicate an incorrect separation of concerns that should be bundled together or poor abstraction of consumer / library responsibility.</p>
+			<p>As one example of the above tenet, a library that needs to interact with its caller in a more complex way than simply returning objects or throwing exceptions should do so through an interface defined in the library layer and implemented in its consumer.  The alternative would be explicit awareness of a multitude of potential consumer classes which would require circular dependencies and create spaghetti code.  (It should not be surprising that cleanly layered architectures like this inherently promote good modern practices like enhancing testability and reuse through techniques such as dependency injection.)</p>
+		<h2>Services</h2>
+			<p>Services provide higher-level application support functionality.  They can be thought of as having a "lifecycle" in that they may include explicit startup and/or shutdown processing, allowing them to maintain internal state or resources that benefit from graceful shutdown.  Services should reject attempts to use them when not in a clean "running" state (not fully initialized or in the process of shutting down).  As a corollary, services should also track work in progress to allow potential delay of service shutdown until all work in progress has drained from within the service.</p>
+			<p>Services may rely on libraries or other services, again without circular dependencies.</p>
+			<p>In almost all cases, services should be "self-contained," which is defined here as a bundling together of all persistent objects (also known as database entities), interfaces, implementations, and standardized or recommended configuration and property support to allow consumer services or applications to access all their functionality with a single Maven dependency import.  In some instances, however, code reuse may benefit greatly from division between a service and a "companion library."</p>
+			<p>A good example of this is the "lib-monitor" and "svc-monitor" components of this toolkit.  Lib-monitor defines data structures and interfaces for recording results of work (potentially used within other libraries or services), while svc-monitor contains stateful code that implements publication of recorded information (including potentially in asynchronous background threads that desire graceful shutdown).  But in general alternative architectures that do not require this splitting of functionality should be preferred.</p>		
+		<h2>Applications</h2>
+			<p>TBD</p>
+		<h2>Distributions</h2>
+			<p>TBD</p>
+			
+	<h1>Toolkit Concepts</h1>
+		<h2>Property-Based Application Configuration</h2>
+			<p>The toolkit incorporates a philosophy of "first definition wins" property substitution within Spring configuration files.  When a property file is processed, if a value has been previously set for a given key, the current value is ignored.  This lets default property values be baked into the distribution while still allowing a startup script or other application context launch mechanism to set property values to override the defaults.</p>
+			<p>The toolkit's implementation of property processing uses Java JVM system properties to track whether a value has already been set for a key, so it is important to use good namespacing when creating bean definitions and property substitution keys.  Because of this, a launch script can use the JVM's "-D" command line option to set application properties.</p>
+		<h2>ContextMain: Launching Applications</h2>
+			<p>The toolkit includes ContextMain, a Java class implementing a main() function that loads application configuration property files and launches Spring application contexts.  An instantiation of ContextMain is configured by a Spring beans XML file at a well-known location (classpath:resourceMap.xml) and is controlled by command line arguments passed into the main() function.</p>
+			<p>A resourceMap.xml file can contain four elements:</p>
+			<ul>
+				<li>System properties to set before processing any other property files (these will override any values stored in property files processed by ContextMain or baked into the distribution)</li>
+				<li>A map of short alias names to sequences of property files</li>
+				<li>A map of short alias names to sequences of Spring application context launch specifications</li>
+				<li>A string that contains the context specification to launch if no contexts are passed in on the command line</li>
+			</ul>
+			<p>ContextMain is intended to be the MainClass specified in the MANIFEST.MF file of a JAR that contains all classes (other than JRE runtime classes) necessary to run the application(s) packaged into the JAR file distribution.</p>
+			<p>On execution, ContextMain performs the following sequence of actions:</p>
+			<ul>
+				<li>Processes any system properties specified in the resourceMap.xml file, setting any that do not yet have values set (system properties that do have values may have been set through the use of JVM -D arguments in a startup script)</li>
+				<li>Sequentially processes "-p" and "-c" command line options, processing further property files or launching context specifications as directed</li>
+				<li>Conditionally launches the default context specification defined in the resourceMap.xml file if processing of the command line options resulted in no contexts being launched</li>
+				<li>Waits for all launched contexts to shutdown (contexts may close themselves or ContextMain can be instructed to close all its launched contexts via a JMX operation)</li>
+				<li>Exits the JVM by returning from the main() function</li>
+			</ul>
+			<h3>ContextMain System Properties Map</h3>
+				<p>The classpath:resourceMap.xml file may contain a map of properties to be set before processing any command line directives.  The syntax of this map is shown below.</p>
+				<pre>
+	&lt;bean id="systemProperties" class="org.springframework.beans.factory.config.PropertiesFactoryBean"&gt;&lt;property name="properties"&gt;&lt;props&gt;
+		&lt;prop key="com.brienwheeler.apps.main.propertyName"&gt;propertyValue&lt;/prop&gt;
+		&lt;prop key="com.brienwheeler.apps.main.property2"&gt;value2&lt;/prop&gt;
+	&lt;/props&gt;&lt;/property&gt;&lt;/bean&gt;
+				</pre>
+			<h3>ContextMain Property File Map</h3>
+				<p>The classpath:resourceMap.xml file may contain a map that assigns a short alias (suitable for use with the command line -p option) to a sequence of property file locations or other property file aliases, as shown below.</p>
+				<pre>
+	&lt;bean id="propertiesMap" class="org.springframework.beans.factory.config.PropertiesFactoryBean"&gt;&lt;property name="properties"&gt;&lt;props&gt;
+		&lt;prop key="propertyFile1"&gt;classpath:com/brienwheeler/apps/main/one.properties&lt;/prop&gt;
+		&lt;prop key="propertyFile2"&gt;classpath:com/brienwheeler/apps/main/two.properties&lt;/prop&gt;
+		&lt;prop key="oneAndTwo"&gt;propertyFile1,propertyFile2&lt;/prop&gt;
+		&lt;prop key="oneAndThree"&gt;propertyFile1,classpath:com/brienwheeler/apps/main/three.properties&lt;/prop&gt;
+	&lt;/props&gt;&lt;/property&gt;&lt;/bean&gt;
+				</pre>
+			<h3>ContextMain Application Context Map</h3>
+				<p>The classpath:resourceMap.xml file may contain a map that assigns a short alias (suitable for use with the command line -c option) to an application context launch specifications, as shown below.</p>
+				<pre>
+	&lt;bean id="contextMap" class="org.springframework.beans.factory.config.PropertiesFactoryBean"&gt;&lt;property name="properties"&gt;&lt;props&gt;
+		&lt;prop key="context1Direct"&gt;classpath:com/brienwheeler/apps/main/context1.xml&lt;/prop&gt;
+		&lt;prop key="context2Direct"&gt;classpath:com/brienwheeler/apps/main/context2.xml&lt;/prop&gt;
+		&lt;prop key="contextDirectList"&gt;classpath:com/brienwheeler/apps/main/context1.xml,classpath:com/brienwheeler/apps/main/context2.xml&lt;/prop&gt;
+		&lt;prop key="contextIndirect"&gt;context1Direct&lt;/prop&gt;
+		&lt;prop key="contextIndirectList"&gt;context1Direct,context2Direct&lt;/prop&gt;
+		
+		&lt;!-- canonical representations --&gt;
+		&lt;prop key="contextWithProps"&gt;properties[props1]context1Direct&lt;/prop&gt;
+		&lt;prop key="contextWithPropsList"&gt;properties[props1,props2]context1Direct&lt;/prop&gt;
+		&lt;prop key="contextListWithProps"&gt;properties[props1]context1Direct,properties[props2,props3]context2Direct&lt;/prop&gt;
+		&lt;!-- allowable variants with context not required directly after properties spec --&gt;
+		&lt;prop key="variant1"&gt;properties[props1],context1Direct,properties[props2],context2Direct&lt;/prop&gt;
+		&lt;prop key="variant2"&gt;properties[props1],context1Direct,properties[props2]&lt;/prop&gt;
+	&lt;/props&gt;&lt;/property&gt;&lt;/bean&gt;
+				</pre>
+				<p>An application context launch specification is a comma-separated list of context locations or aliases, each with an optional list of properties file locations or aliases that should be processed before launching the context.  For robustness, the context location or alias is treated as optional when a properties file list appears, allowing the presence or absence of a comma between the properties file list and the context location or alias to behave identically.</p>
+
+	<h1>Source Tree Structure</h1>
+		<p>The top-level directory structure of the source tree is</p>
+		<table>
+			<tr><td>apps/</td><td>Applications and application support classes</td></tr>
+			<tr><td>dist/</td><td>Standalone executable JAR file distributions</td></tr>
+			<tr><td>doc/</td><td>Toolkit documentation</td></tr>
+			<tr><td>lib/</td><td>Libraries targeted at all Java programs</td></tr>
+			<tr><td>samples/</td><td>Sample applications</td></tr>
+			<tr><td>svc/</td><td>Services and business logic</td></tr>
+			<tr><td>web/</td><td>Libraries targeted at web applications</td></tr>
+		</table>
+		
+		<h2>Libraries</h2>
+			<table>
+				<tr><td>lib/concurrent</td><td>Threading classes and wrappers around system threading classes that promote best practices.</td></tr>
+				<tr><td>lib/db</td><td>Classes and boilerplate configuration to support database connectivity, persistent objects (database entities), transaction management, and DAO implementation.</td></tr>
+				<tr><td>lib/email</td><td>Support for email addresses and email address validation.</td></tr>
+				<tr><td>lib/io</td><td>Useful I/O related functionality.  Currently only ReconnectingSocket.</td></tr>
+				<tr><td>lib/jmx</td><td>Classes to facilitate JMX registration of objects and auto-registration of log4j categories.</td></tr>
+				<tr><td>lib/logging</td><td>Resources to configure Apache commons-logging to use log4j as its implementation.  Also includes lib-logging-defconfig unless explicitly excluded.</td></tr>
+				<tr><td>lib/logging-defconfig</td><td>A default log4j.xml configuration file (bundled in its own Maven artifact for easy exclusion when depending on lib-logging).</td></tr>
+				<tr><td>lib/monitor</td><td>Classes to support work success/fail/latency statistics, application telemetry, and noting the need for human intervention.</td></tr>
+				<tr><td>lib/spring-beans</td><td>Implementation of property-based application configuration and other enhancements to core Spring beans functionality.</td></tr>
+				<tr><td>lib/svc</td><td>Base classes to support creation of higher-level services that have lifecycle management and graceful shutdown.</td></tr>
+				<tr><td>lib/test</td><td>Utilities and classes to support testing, including stepping concurrent threads through potential race condition scenarios.</td></tr>
+				<tr><td>lib/util</td><td>General utility classes and functions.</td></tr>
+				<tr><td>lib/validation</td><td>Validation and validation error message support.</td></tr>
+			</table>
+
+		<h2>Web Libraries</h2>
+			<table>
+				<tr><td>web/jawr</td><td>Customizable boilerplate configuration for including JAWR in your web application.</td></tr>
+				<tr><td>web/spring-security</td><td>Integration of the toolkit's svc-users service and Spring Security.</td></tr>
+				<tr><td>web/spring-web</td><td>Enhancements to Spring's spring-web component.</td></tr>
+				<tr><td>web/tags/blwcore</td><td>Custom JSP tags that enhance core HTML or JSTL Core tags.</td></tr>
+				<tr><td>web/tags/blwform</td><td>Custom JSP tags that make using Spring's Form JSP tags easier.</td></tr>
+				<tr><td>web/tags/blwjawr</td><td>Custom JSP tags that make using JAWR's JSP tags easier.</td></tr>
+			</table>
+			
+		<h2>Services</h2>
+			<table>
+				<tr><td>svc/attrs</td><td>Extensible implementation of attributes attached to database entities.</td></tr>
+				<tr><td>svc/content</td><td>Storing and fetching content from the local filesystem.</td></tr>
+				<tr><td>svc/monitor</td><td>Services for processing monitoring data, including telemetry, work statistics, and requests for human intervention.</td></tr>
+				<tr><td>svc/users</td><td>Basic user management including authentication, email addresses, attributes, and roles.</td></tr>
+			</table>
+			
+		<h2>Applications</h2>
+			<table>
+				<tr><td>apps/main</td><td>Launching of Spring application contexts</td></tr>
+				<tr><td>apps/schematool</td><td>Tool for installing or updating database schemas</td></tr>
+				<tr><td>apps/tomcat</td><td>Spring bean version of embedded Tomcat</td></tr>
+			</table>
+			
+	<h1>Best Practices and Conventions</h1>
+	
+		<h2>Maven</h2>
+		
+			<h3>Artifact Naming</h3>
+				<ul>
+					<li>Multi-module POMs (&lt;packaging&gt;pom&lt;/packaging&gt;) should be named "pom-DIRNAME" where DIRNAME is the directory name of the multi-module project (e.g., pom-lib)</li>
+					<li>The top-level POM should be "pom-root"</li>
+					<li>Java vibrary artifacts should be named "lib-LIBNAME"</li>
+					<li>Web library artifacts should be named "web-LIBNAME"</li>
+					<li>JSP tag library artifacts should be named "tags-LIBNAME"</li>
+					<li>Javascript library artifacts should be named "js-LIBNAME"</li>
+					<li>Service artifacts should be named "svc-SVCNAME"</li>
+					<li>Application artifacts should be named either "apps-APPNAME" or simply "APPNAME" (to facilitate deploying a WAR at an appropriate context root)</li>
+					<li>Distribution artifacts should be named "dist-DISTNAME"</li>
+				</ul>
+				
+			<h3>Dependency Version Management</h3>
+				<ul>
+					<li>All dependency versions should be specified in &lt;dependencyManagement&gt; section of pom-root</li>
+					<li>For readability, all dependency versions should use a property substitution</li>
+				</ul>
+				
+		<h2>Naming Conventions</h2>
+		
+			<h3>Package naming</h3>
+				<ul>
+					<li>Service interfaces and exceptions are located in com.brienwheeler.svc.SVCNAME</li>
+					<li>Service implementations are located in com.brienwheeler.svc.SVCNAME.impl</li>
+					<li>Service database entities are located in com.brienwheeler.svc.SVCNAME.domain</li>
+				</ul>
+				
+			<h3>Class naming</h3>
+				<ul>
+					<li>Interfaces are prefixed with capital I (e.g., IService)<li>
+					<li>Implementations are named simply, with no prefix or suffix (e.g., Service, not ServiceImpl)</li>
+				</ul>
+				
+			<h3>Spring standard plumbing files</h3>
+				<h4>Spring bean naming</h4>
+					<ul>
+						<li>All beans should be given an "id" -- do not use anonymous beans as they can result in undesired multiple bean instantiations.  Also, naming a bean forces thought about what it is doing and an appropriately namespaced identifier.</li>
+					</ul>
+				<h4>Spring bean property substitution naming</h4>
+				
+			<h3>Test class naming</h3>
+	
+		<h2>Coding Conventions</h2>
+		
+			<h3>Concurrency</h3>		
+				<ul>
+					<li>Always use a NamedThreadFactory when configuring thread pools to avoid ambiguous default thread naming.</li>
+					<li>Always use an uncaught exception handler on thread pool threads that at least logs any exception</li> 
+				</ul>
+	
+			<h3>Exceptions</h3>
+				<ul>
+					<li>Use runtime exceptions only</li>
+				</ul>
+
+			<h3>Transactionality</h3>
+				<ul>
+					<li>All service and DAO methods that access the database should specify their transactionality, even if a service method is a simple wrapper around a one-line call to a DAO method.  Consistently doing so reinforces thinking about transactionality and reduces the possibility of copy/paste errors.</li>
+					<li>Read-only methods should use "@Transactional(readOnly=true, propagation=Propagation.SUPPORTS)"</li>
+					<li>Methods that modify the database should use "@Transactional"</li>
+				</ul>
+
+			<h3>Logging</h3>
+				<ul>
+					<li>Base classes should use "protected final Log log = LogFactory.getLog(getClass())"</li>
+					<li>Classes not meant to be extended should use "private static final Log log = LogFactory.getLog(ClassName.class)"</li>
+				</ul>
+
+			<h3>Member variables</h3>
+				<ul>
+					<li>Member variables should be final wherever possible</li>
+				</ul>
+
+			<h3>Persistence</h3>		
+				<ul>
+					<li>Don't use OneToMany -- it creates large joined queries.  Instead use a service to lookup associated entities.</li>
+				</ul>
+
+		<h2>Spring Autowiring</h2>
+			<ul>
+				<li>Don't use it, as in complex configurations that use lots of imported standard plumbing it can fail unexpectedly.  And it works against comprehension.</li>
+			</ul>
+
+		<h2>Spring MVC</h2>
+		
+			<h3>URL mapping</h3>
+				<ul>
+					<li> To facilitate comprehension, use a combination of SimpleUrlMapping for base URL and @RequestMapping</li>
+				</ul>
+
+		<h2>Testing</h2>
+		
+			<h3>Testing libraries</h3>
+			
+			<h3>Testing concurrent software</h3>
+
+	<h1>TODO</h1>
+		<ul>
+			<li>Database encryption</li>
+			<li>Esper integration</li>
+			<li>JMeter test harness</li>
+			<li>Tomcat HTTPS support</li>
+			<li>Puppet</li>
+		</ul>
+
+	<h1>The Sample Application</h1>
+		<p>The sample application is presented as a series of versions that iteratively build up a simple Spring MVC web application that supports basic user registration and login functionality.  You are encouraged to use a visual diff tool against clean copies of successive versions of the sample app to see how each version modifies or builds on the previous version.</p>
+		<h2>Building and Running The Sample Application</h2>
+			<h3>Command Line</h3>
+				<p>To build any version of the sample application:</p>
+				<pre>
+	cd samples/sampleapp-&lt;VERSION&gt;
+	mvn install
+				</pre>
+				<p>To run the sample application:</p>
+				<pre>
+	cd apps/sampleapp
+	mvn tomcat:run
+				</pre>
+			<h3>Eclipse</h3>
+				<p>TBD</p>
+				
+		<h2>SampleApp V1</h2>
+			<p>Version 1 of the sample application demonstrates the following concepts:</p>
+			<ul>
+				<li>A top-level pom.xml that controls dependency versions for all sub-projects and specifies all Maven plugin versions (to reduce build vulnerability to unexpected external updates)</li>
+				<li>A deployable web application that implements a simple HelloServlet</li>
+			</ul>
+			<h3>pom-root</h3>
+				<p>Since Maven has a strong inheritance model from parent pom files, the top-level pom file centralizes certain definitions to minimize the possibility of variability across sub-projects that can introduce instability.  This is good practice of the DRY (Don't Repeat Yourself) principle and prevents certain classes of error that can take days to track down and eliminate (such as including two different versions of the same artifact).</p>
+				<p>One example of this centralization is that the top-level pom file uses a &lt;dependencyManagement&gt; section to specify desired versions of all sub-project dependencies.  This prevents two sub-projects from including different versions of a dependency.  These definitions look like this:</p>
+				<pre>
+	&lt;properties&gt;
+		&lt;version.servlet-api&gt;2.5&lt;/version.servlet-api&gt;
+	&lt;/properties&gt;
+	
+	&lt;dependencyManagement&gt;
+		&lt;dependency&gt;
+			&lt;groupId&gt;javax.servlet&lt;/groupId&gt;
+			&lt;artifactId&gt;servlet-api&lt;/artifactId&gt;
+			&lt;version&gt;${version.servlet-api}&lt;/version&gt;
+		&lt;/dependency&gt;
+	&lt;/dependencyManagement&gt;
+				</pre>
+				<p>Notice that the actual servlet-api version is specified in a property definition, even though that property definition should never be referenced anywhere other than the &lt;dependencyManagement&gt; section of the same top-level pom file.  This serves two purposes: making it easier for someone reading the pom file to see toolkit names and versions, and allowing the reuse of the version property within the top level pom file when importing related artifacts from a single source (e.g., importing both spring-context and spring-webmvc from the Spring framework).</p>
+				<p>After configuring a dependency version in the top-level pom file, sub-projects that inherit from the top-level pom file should omit the &lt;version&gt; specifier when defining dependencies, as shown below.  (Without the inherited &lt;dependencyManagement&gt;, it would be an error to omit the &lt;version&gt; in the sub-project pom file).</p>
+				<pre>
+	&lt;dependencies&gt;
+		&lt;dependency&gt;
+			&lt;groupId&gt;javax.servlet&lt;/groupId&gt;
+			&lt;artifactId&gt;servlet-api&lt;/artifactId&gt;
+		&lt;/dependency&gt;
+	&lt;/dependencies&gt;
+				</pre>
+				<p>Secondly, the top-level pom file centralizes Maven plug-in version definitions and, where useful, Maven plug-in configurations.  The example below configures all sub-projects to compile for a target of Java 6 and above, allowing the use of annotations and other modern language features.</p>
+				<pre>
+	&lt;properties&gt;
+		&lt;maven.compiler.source&gt;1.6&lt;/maven.compiler.source&gt;
+		&lt;maven.compiler.target&gt;1.6&lt;/maven.compiler.target&gt;
+	
+		&lt;version.plugin.maven-compiler&gt;2.3.2&lt;/version.plugin.maven-compiler&gt;
+	&lt;/properties&gt;
+	
+	&lt;build&gt;
+		&lt;pluginManagement&gt;
+			&lt;plugin&gt;
+				&lt;groupId&gt;org.apache.maven.plugins&lt;/groupId&gt;
+				&lt;artifactId&gt;maven-compiler-plugin&lt;/artifactId&gt;
+				&lt;version&gt;${version.plugin.maven-compiler}&lt;/version&gt;
+				&lt;configuration&gt;
+					&lt;source&gt;${maven.compiler.source}&lt;/source&gt;
+					&lt;target&gt;${maven.compiler.target}&lt;/target&gt;
+				&lt;/configuration&gt;
+			&lt;/plugin&gt;
+		&lt;/pluginManagement&gt;
+	&lt;/build&gt;
+				</pre>
+			<h3>sampleapp</h3>
+				<p>V1 of the sampleapp is a trivial web application implementing a simple servlet that returns "Hello" to any HTTP request.  It consists of two files, the WEB-INF/web.xml web application deployment descriptor and the HelloServlet Java source file.</p>
+				<p>The web.xml deployment descriptor defines a servlet named "helloServlet" as an instance of the "HelloServlet" class and maps a url-pattern of "/" onto it.  Note that a URL pattern is actually a URL prefix in that any URL starting with "/" (effectively all URLs within the web app) are mapped to this servlet.  That means that all three of the URLs shown below will return "Hello" when accessed while running V1 of the sample app:</p>
+				<pre>
+	http://localhost:8080/sampleapp/
+	http://localhost:8080/sampleapp/foo
+	http://localhost:8080/sampleapp/foo/bar
+				</pre>
+			
+			<h2>SampleApp V2</h2>
+				<p>Version 2 of the sample application expands on version 1 to demonstrate the following concepts:</p>
+				<ul>
+					<li>Creating a self-contained executable JAR file for a web application</li>
+				</ul>
+				<p>The dist/sampleapp directory builds an executable JAR that uses the toolkit's ContextMain class to launch a TomcatBean configured to extract and deploy the sampleapp WAR.  The JAR file contains the exploded contents of all JAR files required in the runtime dependency scope except for the sampleapp WAR file and an unexploded copy of the sampleapp WAR file.  (See dist/sampleapp/src/main/assembly/dist-sampleapp.xml for the Maven assembly plugin descriptor).</p>
+				<p>The distribution's resourceMap.xml configuration file contains one context specification (named "sampleapp") which ensures that the property file alias "sampleappProperties" (which resolves to classpath:com/brienwheeler/sampleapp/dist/sampleapp.properties) is processed before launching the TomcatBean (in the toolkit's classpath:com/brienwheeler/apps/tomcat/tomcat.xml resource file).</p>
+				<p>The resourceMap also specifies "sampleapp" as the default context to launch, allowing the launch of Tomcat and sampleapp with no command line arguments as shown below (the JAR file is built in the dist/sampleapp/target directory).</p>
+				<pre>
+	java -jar dist-sampleapp-v2-jar-with-dependencies.jar
+				</pre>
+				<p>As an example of using property definitions to control the environment-specific behavior of a distribution, you may change the Tomcat listen port using a JVM -D option as shown below.</p>
+				<pre>
+	java -Dcom.brienwheeler.apps.tomcat.tomcat.port=8000 \
+		 -jar dist-sampleapp-v2-jar-with-dependencies.jar
+				</pre>
+				<p>Another method of acccomplishing the same objective is to create a file named "env.properties" that contains the following line:</p>
+				<pre>
+	com.brienwheeler.apps.tomcat.tomcat.port=8000
+				</pre>
+				<p>and then instruct ContextMain to process this file before launching the TomcatBean as shown here:</p>
+				<pre>
+	java -jar dist-sampleapp-v2-jar-with-dependencies.jar \
+		-p file:env.properties
+				</pre>
+
+			<h2>SampleApp V3</h2>
+				<p>Version 3 of the sample application expands on version 2 to demonstrate the following concepts:</p>
+				<ul>
+					<li>Configuring basic database access</li>
+					<li>Importing the toolkit's svc-users database entity definitions</li>
+					<li>Using the toolkit's schematool app to create correct database schema</li>
+				</ul>
+				<h3>Configuring Basic Database Access</h3>
+					<p>The toolkit's lib-db library provides the boilerplate Spring configuration required to connect to a database and manage database transactions via Spring's @Transactional annotation, but does not provide any database entity definitions (these are generally defined within each service).  Default database connection parameters are in appDataSource.properties and appEntityManagerFactory.properties, both located in the lib/db/src/main/resources/com/brienwheeler/lib/db directory, and are appropriate for a MySQL 5.x installation.  The sample app shows how to easily override the default parameters to customize them for a real application.</p>
+					<p>The sample app uses an "svc-all" component to centralize dependencies and property overrides for the sample app.  Although in sample app V3 there is only one service dependency (svc-users), a more complicated application would likely depend on a number of services, both from the toolkit and custom to the application.  Centralizing the dependencies and database overrides for the application promotes easy re-use between the application and schematool.</p>
+					<p>The file svc/all/src/main/resources/com/brienwheeler/sampleapp/lib/data/dataAccess.properties contains the following:</p>
+					<pre>
+	#
+	# create database sampleapp;
+	# grant all on sampleapp.* to 'sampleapp'@'localhost' identified by 'password';
+	# grant all on sampleapp.* to 'sampleapp'@'%' identified by 'password';
+	# flush privileges;
+	#
+	com.brienwheeler.lib.db.appDataSource.database=sampleapp
+	com.brienwheeler.lib.db.appDataSource.username=sampleapp
+	com.brienwheeler.lib.db.appDataSource.password=password
+	
+	com.brienwheeler.lib.db.appEntityManagerFactory.persistenceXmlLocation= \
+		classpath:com/brienwheeler/lib/db/persistence.xml, \
+		classpath:com/brienwheeler/svc/users/persistence.xml
+					</pre>
+					<p>The commented MySQL commands at the top of the file show the commands required to create the database and MySQL user for the sampleapp.  The subsequent definitions override the default property values built into the toolkit to change the database credentials and to include the database entity definitions from the toolkit's svc-users service.  (The toolkit's svc-users artifact must be included as a dependency in the sampleapp's svc-all pom.xml file.)</p>
+					<p>After executing the MySQL commands to create the database and database user, the next step is to populate the database with table definitions for the required database entities.  If you connect to your MySQL server (mysql -u sampleapp -ppassword sampleapp) and issue the "show tables" command you will see that since the database was just created there are no tables in it.</p>
+				<h3>Configuring and Using Schematool</h3>
+					<p>The dist/schematool directory shows how to create a schematool executable JAR that is customized for the sample app.  The pom.xml file contains everything required to build the executable JAR (leveraging ContextMain), and the resourceMap.xml references the application's dataAccess.properties file to provide schematool the database credentials and the set of required database entities.</p>
+					<p>Schematool has four distinct modes of operation: showUpdate (the default), execUpdate, showClean, execClean.  showUpdate and showClean make no changes to the database schema, but only display the commands that schematool would execute to create or align the database schema to support the specified database entities.  showUpdate and execUpdate attempt to modify any existing schema, while showClean and execClean drop any existing schema and re-create it.</p>
+					<p>The example below shows running the sampleapp schematool running against an empty database to first show the required commands and then to execute them.</p>
+					<pre>
+	% mysql -u sampleapp -ppassword sampleapp
+	mysql&gt; show tables;
+	Empty set (0.00 sec)
+	
+	% java -jar dist/schematool/target/dist-schematool-v3-jar-with-dependencies.jar
+	create table User (id bigint not null auto_increment, version bigint not null, accountExpired bit not null, accountLocked bit not null, credentialsExpired bit not null, enabled bit not null, hashedPassword varchar(255) not null, username varchar(255) not null unique, primary key (id))
+	create table UserAttribute (id bigint not null auto_increment, version bigint not null, name varchar(255) not null, value varchar(255) not null, owner_id bigint not null, primary key (id))
+	create table UserEmailAddress (id bigint not null auto_increment, version bigint not null, status varchar(255) not null, address varchar(255) not null, user_id bigint not null, primary key (id))
+	create table UserRole (id bigint not null auto_increment, version bigint not null, role varchar(255) not null, user_id bigint not null, primary key (id))
+	alter table UserAttribute add index FKA57722F130CD782D (owner_id), add constraint FKA57722F130CD782D foreign key (owner_id) references User (id)
+	alter table UserEmailAddress add index FK5FCF0C43C4E6C815 (user_id), add constraint FK5FCF0C43C4E6C815 foreign key (user_id) references User (id)
+	alter table UserRole add index FKF3F76701C4E6C815 (user_id), add constraint FKF3F76701C4E6C815 foreign key (user_id) references User (id)
+	
+	mysql&gt; show tables;
+	Empty set (0.00 sec)
+	
+	% java -jar dist/schematool/target/dist-schematool-v3-jar-with-dependencies.jar -c execUpdate
+	create table User (id bigint not null auto_increment, version bigint not null, accountExpired bit not null, accountLocked bit not null, credentialsExpired bit not null, enabled bit not null, hashedPassword varchar(255) not null, username varchar(255) not null unique, primary key (id))
+	create table UserAttribute (id bigint not null auto_increment, version bigint not null, name varchar(255) not null, value varchar(255) not null, owner_id bigint not null, primary key (id))
+	create table UserEmailAddress (id bigint not null auto_increment, version bigint not null, status varchar(255) not null, address varchar(255) not null, user_id bigint not null, primary key (id))
+	create table UserRole (id bigint not null auto_increment, version bigint not null, role varchar(255) not null, user_id bigint not null, primary key (id))
+	alter table UserAttribute add index FKA57722F130CD782D (owner_id), add constraint FKA57722F130CD782D foreign key (owner_id) references User (id)
+	alter table UserEmailAddress add index FK5FCF0C43C4E6C815 (user_id), add constraint FK5FCF0C43C4E6C815 foreign key (user_id) references User (id)
+	alter table UserRole add index FKF3F76701C4E6C815 (user_id), add constraint FKF3F76701C4E6C815 foreign key (user_id) references User (id)
+	
+	mysql&gt; show tables;
+	+---------------------+
+	| Tables_in_sampleapp |
+	+---------------------+
+	| user                |
+	| userattribute       |
+	| useremailaddress    |
+	| userrole            |
+	+---------------------+
+	4 rows in set (0.00 sec)
+					</pre>
+
+			<h2>SampleApp V4</h2>
+				<p>Version 4 of the sample application expands on version 3 to demonstrate the following concepts:</p>
+				<ul>
+					<li>Conversion from simple servlet to simple JSP-based Spring MVC application</li>
+				</ul>
+				
+				<h3>Conversion to Spring MVC using JSP</h3>
+					<p>In order to leverage Spring MVC and JSP, additional libraries need to be included in sampleapp.  In V4, the apps/sampleapp/pom.xml file adds dependencies on org.springframework:spring-webmvc (the core Spring MVC library), com.brienwheeler.web:web-spring-web (to leverage SmartXmlWebApplicationContext and prevent duplicate processing of multiply-imported beans files), and javax.servlet:jstl (for correct JSP operation).  As always, the versions of these dependencies are managed in pom-root.</p>
+					<p>The wiring changes to convert from a servlet to a Spring MVC app start in the apps/sampleapp/src/main/webapp/WEB-INF/web.xml file.  The definition of helloServlet is replaced by an instance of Spring MVC's DispatcherServlet (named sampleapp -- this is important later) which has been configured to use com.brienwheeler.web.spring.SmartSmlWebApplicationContext as the class for creating its application contexts.  And the servlet mapping has obviously been changed to refer to the new DispatcherServlet rather than helloServlet.</p>
+					<p>The reason that the name of the DispatcherServlet in web.xml is important is that the default behavior of the DispatcherServlet is to look for a file named "SERVLETNAME-servlet.xml" to configure itself.  Hence the new V4 file apps/sampleapp/src/main/webapp/WEB-INF/sampleapp-servlet.xml.  This file contains all the configuration for the Spring MVC framework.</p>
+					<p>sampleapp-servlet.xml configures the following:</p>
+						<ul>
+							<li>An instance of ContextBeanDumper, a useful library utility that aids debugging by logging the names of all beans created within an application context.</li>
+							<li>An instance of Spring's RequiredAnnotationBeanPostProcessor, which ensures that all bean properties tagged with an @Required annotation are in fact set in the configuration files.</li>
+							<li>An instance of the library's enhanced PropertyPlaceholderConfigurer, which processes the application's sampleapp.properties file to override library default configuration parameters.  (V4 of the sampleapp does not actually override any library values, but subsequent sampleapp versions do and it is good practice to include a PropertyPlaceholderConfigurer in your application.)</li>
+							<li>An instance of Spring MVC's InternalResourceViewResolver (which must be named "viewResolver") configured to look for JSP (JstlView) files under the WEB-INF/jsp directory with a suffix of ".jspx".</li>
+							<li>An import of a beans file defining all the application controllers, located at src/com/brienwheeler/sampleapp/web/controllers.xml.  Although V4 of the sampleapp has only 1 controller, most Spring MVC web applications grow to have a large number of controllers.  Separating their definitions into a dedicated file aids comprehension.  In larger web applications you can create a multi-level separation, using a "controllers.xml" file to import additional files (e.g., "accountControllers.xml", "searchControllers.xml", "apiControllers.xml") that each define a set of related controller beans.</li>
+							<li>An instance of Spring MVC's SimpleUrlHandlerMapping which instructs the DispatcherServlet which controller to route web requests to.  There are many ways of mapping application URLs to controllers in Spring MVC, please see the discussion about Spring MVC URL Mapping under Best Practices and Coding Conventions.  For now just note that this maps the request path "/" onto a bean named com.brienwheeler.sampleapp.web.controllers.helloController (defined in com/brienwheeler/sampleapp/web/controllers.xml).</li>
+						</ul>
+					<p>The HelloServlet.java file has gone away as it is no longer referenced from web.xml, to be replaced by HelloController.java, referenced by src/main/resources/com/brienwheeler/sampleapp/web/controllers.xml.  HelloController maps requests onto the view named "hello", which the InternalResourceViewResolver configured in sampleapp-servlet.xml will map to the WEB-INF/jsp/hello.jspx file.</p>
+					<p>It is useful to note that unlike the previous servlet-based versions of sampleapp, V4 only responds on a single URL (http://localhost:8080/sampleapp/).  This is due to differences between the handling of Spring MVC request path mapping and the handling of servlet-mappings defined in web.xml.  Since the SimpleUrlHandlerMapping maps "/" to the HelloController, this is the only request path routed to the controller.  To emulate the previous servlet-based behavior the mapping would need to be changed to "/**".  This URL prefix mapping ability will be used in conjunction with the @RequestMapping annotation in subsequent versions of sampleapp to consolidate related application functionality into a single controller for comprehensibility.</p>
+					<p>Finally, the src/main/WEB-INF/jsp/hello.jspx file implements the response sent back to the browser.  It contains a content type declaration (which results in an HTTP Content-Type response header), a doctype declaration (resulting in a &lt;!DOCTYPE&gt; element in the HTTP response), an HTML &lt;head&gt; element with a page title, and a simple HTML &lt;body&gt; with "Hello" as its content.</p>
+					<p>This completes all the code and configuration changes necessary to incorporate Spring MVC into sampleapp.</p>
+</body>
+</html>

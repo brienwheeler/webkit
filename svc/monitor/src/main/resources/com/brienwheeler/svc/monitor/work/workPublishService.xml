@@ -1,0 +1,28 @@
+<beans
+	xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd"
+	>
+
+	<bean id="com.brienwheeler.svc.monitor.work.workPublishService.PropertyPlaceholderConfigurer"
+			class="com.brienwheeler.lib.spring.beans.PropertyPlaceholderConfigurer">
+		<property name="placeholderOrder" value="LIBRARY"/>
+		<property name="locations">
+			<list>
+				<value>classpath:com/brienwheeler/svc/monitor/work/workPublishService.properties</value>
+			</list>
+		</property>
+	</bean>
+
+	<bean id="com.brienwheeler.svc.monitor.work.workPublishService"
+			class="com.brienwheeler.svc.monitor.work.impl.WorkPublishService">
+		<property name="enabled" value="${com.brienwheeler.svc.monitor.work.workPublishService.enabled}"/>
+		<property name="publishPeriodicity" value="${com.brienwheeler.svc.monitor.work.workPublishService.publishPeriodicity}"/>
+		<property name="processors">
+			<list>
+				<bean class="com.brienwheeler.svc.monitor.work.impl.WorkRecordCollectionTelemetryPublisher"/>
+			</list>
+		</property>
+	</bean>
+			
+</beans>

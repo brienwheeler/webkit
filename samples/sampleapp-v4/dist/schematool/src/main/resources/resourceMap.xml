@@ -1,0 +1,25 @@
+<beans
+	xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd"
+	>
+
+	<bean id="defaultContext" class="java.lang.String">
+		<constructor-arg value="showUpdate"/>
+	</bean>
+	
+	<bean id="propertiesMap" class="org.springframework.beans.factory.config.PropertiesFactoryBean"><property name="properties"><props>
+		<prop key="dataAccessProperties">classpath:com/brienwheeler/sampleapp/lib/data/dataAccess.properties</prop>
+		<prop key="execProperties">classpath:com/brienwheeler/apps/schematool/schemaTool-exec.properties</prop>
+		<prop key="cleanProperties">classpath:com/brienwheeler/apps/schematool/schemaTool-clean.properties</prop>
+	</props></property></bean>
+
+	<bean id="contextMap" class="org.springframework.beans.factory.config.PropertiesFactoryBean"><property name="properties"><props>
+		<prop key="schematool">properties[dataAccessProperties],classpath:com/brienwheeler/apps/schematool/schemaTool.xml</prop>
+		<prop key="showUpdate">schematool</prop>
+		<prop key="execUpdate">properties[execProperties],schematool</prop>
+		<prop key="showClean">properties[cleanProperties],schematool</prop>
+		<prop key="execClean">properties[cleanProperties,execProperties],schematool</prop>
+	</props></property></bean>
+
+</beans>

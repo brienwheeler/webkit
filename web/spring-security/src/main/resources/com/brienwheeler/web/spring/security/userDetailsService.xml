@@ -1,0 +1,30 @@
+<beans
+	xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd"
+	>
+
+	<bean id="com.brienwheeler.web.spring.security.userDetailsService.PropertyPlaceholderConfigurer"
+			class="com.brienwheeler.lib.spring.beans.PropertyPlaceholderConfigurer">
+		<property name="placeholderOrder" value="LIBRARY"/>
+		<property name="locations">
+			<list>
+				<value>classpath:com/brienwheeler/web/spring/security/userDetailsService.properties</value>
+			</list>
+		</property>
+	</bean>
+
+	<import resource="classpath:com/brienwheeler/svc/users/userService.xml"/>
+	<import resource="classpath:com/brienwheeler/svc/users/userEmailAddressService.xml"/>
+	<import resource="classpath:com/brienwheeler/svc/users/userRoleService.xml"/>
+	
+	<bean id="com.brienwheeler.web.spring.security.userDetailsService"
+			class="com.brienwheeler.web.spring.security.UserDetailsService">
+		<property name="userService" ref="com.brienwheeler.svc.users.userService" />		
+		<property name="userEmailAddressService" ref="com.brienwheeler.svc.users.userEmailAddressService" />		
+		<property name="userRoleService" ref="com.brienwheeler.svc.users.userRoleService" />
+		<property name="allowEmailLookup" value="${com.brienwheeler.web.spring.security.userDetailsService.allowEmailLookup}"/>		
+		<property name="allowUsernameLookup" value="${com.brienwheeler.web.spring.security.userDetailsService.allowUsernameLookup}"/>		
+	</bean>
+
+</beans>

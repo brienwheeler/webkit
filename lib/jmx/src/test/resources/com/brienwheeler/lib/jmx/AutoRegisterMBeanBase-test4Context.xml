@@ -1,0 +1,12 @@
+<beans
+	xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd">
+
+	<bean class="org.springframework.jmx.export.annotation.AnnotationMBeanExporter"/>
+		
+	<bean id="com.brienwheeler.lib.jmx.AutoRegisterMBeanBase-test4"
+			class="com.brienwheeler.lib.jmx.AutoRegisterByAnnotation">
+	</bean>
+	
+</beans>

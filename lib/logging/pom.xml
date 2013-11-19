@@ -1,0 +1,53 @@
+<project 
+	xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
+	>
+		
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>com.brienwheeler.lib</groupId>
+        <artifactId>pom-lib</artifactId>
+        <version>1.0</version>
+    </parent>
+
+    <artifactId>lib-logging</artifactId>
+    <packaging>jar</packaging>
+
+    <dependencies>
+    
+    	<!--
+    	   - Compile Dependencies 
+    	   -->
+    	   
+    	<dependency>
+    		<groupId>commons-logging</groupId>
+    		<artifactId>commons-logging-api</artifactId>
+    	</dependency>
+
+    	<!--
+    	   - Runtime Dependencies 
+    	   -->
+    	   
+    	<dependency>
+    		<groupId>com.brienwheeler.lib</groupId>
+    		<artifactId>lib-logging-defconfig</artifactId>
+    		<scope>runtime</scope>
+    	</dependency>
+
+    	<dependency>
+    		<groupId>commons-logging</groupId>
+    		<artifactId>commons-logging</artifactId>
+    		<scope>runtime</scope>
+    	</dependency>
+
+    	<dependency>
+    		<groupId>log4j</groupId>
+    		<artifactId>log4j</artifactId>
+    		<scope>runtime</scope>
+    	</dependency>
+
+    </dependencies>
+    
+</project>

@@ -1,0 +1,106 @@
+<project 
+	xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
+	>
+		
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>com.brienwheeler.lib</groupId>
+        <artifactId>pom-lib</artifactId>
+        <version>1.0</version>
+    </parent>
+
+    <artifactId>lib-svc</artifactId>
+    <packaging>jar</packaging>
+
+    <dependencies>
+    
+    	<!-- 
+    	   - Compile dependencies
+    	   -->
+    	
+    	<dependency>
+    		<groupId>com.brienwheeler.lib</groupId>
+    		<artifactId>lib-logging</artifactId>
+    	</dependency>
+
+    	<dependency>
+    		<groupId>com.brienwheeler.lib</groupId>
+    		<artifactId>lib-monitor</artifactId>
+    	</dependency>
+
+    	<dependency>
+    		<groupId>com.brienwheeler.lib</groupId>
+    		<artifactId>lib-spring-beans</artifactId>
+    	</dependency>
+    	
+    	<dependency>
+    		<groupId>com.brienwheeler.lib</groupId>
+    		<artifactId>lib-util</artifactId>
+    	</dependency>
+    	
+    	<dependency>
+    		<groupId>org.aspectj</groupId>
+    		<artifactId>aspectjrt</artifactId>
+    	</dependency>
+    	
+    	<!-- 
+    	   - Test dependencies
+    	   -->
+    	
+		<dependency>
+			<groupId>com.brienwheeler.lib</groupId>
+			<artifactId>lib-monitor</artifactId>
+			<classifier>tests</classifier>
+			<scope>test</scope>
+		</dependency>
+    
+		<dependency>
+			<groupId>com.brienwheeler.lib</groupId>
+			<artifactId>lib-test</artifactId>
+			<scope>test</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-test</artifactId>
+			<scope>test</scope>
+		</dependency>
+
+    </dependencies>
+    
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>aspectj-maven-plugin</artifactId>
+				<executions>
+					<execution>
+						<goals>
+							<goal>compile</goal>
+							<goal>test-compile</goal>
+						</goals>
+						<configuration>
+							<source>${maven.compiler.source}</source>
+							<target>${maven.compiler.target}</target>
+							<forceAjcCompile>true</forceAjcCompile>
+							<!--
+							   - m2e has a problem in that it doesn't seem to add the <classifier>tests</classifer>
+							   - version of the lib-monitor JAR file to the AspectJ classpath, so we will exclude
+							   - those files that would otherwise cause errors
+							   -->
+							<excludes>
+								<exclude>**/StartableServiceBaseTest.java</exclude>
+								<exclude>**/SpringStartableServiceBaseTest.java</exclude>
+								<exclude>**/SpringStoppableServiceBaseTest.java</exclude>
+							</excludes>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+	</build>
+		    
+</project>

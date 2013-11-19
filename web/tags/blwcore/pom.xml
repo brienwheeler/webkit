@@ -1,0 +1,57 @@
+<project 
+	xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
+	>
+		
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>com.brienwheeler.web.tags</groupId>
+        <artifactId>pom-tags</artifactId>
+        <version>1.0</version>
+    </parent>
+
+    <artifactId>tags-blwcore</artifactId>
+    <packaging>jar</packaging>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>net.sourceforge.maven-taglib</groupId>
+				<artifactId>maven-taglib-plugin</artifactId>
+				<executions>
+					<execution>
+						<goals>
+							<goal>tldgenerate</goal>
+						</goals>
+					</execution>
+				</executions>
+				<configuration>
+					<taglibs>
+						<taglib>
+							<shortName>blwcore</shortName>
+							<uri>http://brienwheeler.com/tags/blwcore</uri>
+							<tagdir>src/main/resources/META-INF/tags/blwcore</tagdir>
+						</taglib>
+					</taglibs>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+	
+	<dependencies>
+		
+		<!--
+		   - Runtime Dependencies
+		   -->
+
+		<dependency>
+			<groupId>javax.servlet</groupId>
+			<artifactId>jstl</artifactId>
+			<scope>runtime</scope>
+		</dependency>
+	
+	</dependencies>
+	
+</project>

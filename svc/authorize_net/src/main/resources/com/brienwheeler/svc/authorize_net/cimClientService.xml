@@ -1,0 +1,32 @@
+<beans
+	xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd"
+	>
+
+	<bean id="com.brienwheeler.svc.authorize_net.cimClientService.PropertyPlaceholderConfigurer"
+			class="com.brienwheeler.lib.spring.beans.PropertyPlaceholderConfigurer">
+		<property name="placeholderOrder" value="LIBRARY"/>
+		<property name="locations">
+			<list>
+				<value>classpath:com/brienwheeler/svc/authorize_net/cimClientService.properties</value>
+			</list>
+		</property>
+	</bean>
+	
+	<import resource="classpath:com/brienwheeler/lib/db/transactionWrapper.xml"/>
+	<import resource="classpath:com/brienwheeler/svc/users/userService.xml"/>
+	<import resource="classpath:com/brienwheeler/svc/users/userAttributeService.xml"/>
+	
+	<bean id="com.brienwheeler.svc.authorize_net.cimClientService"
+			class="com.brienwheeler.svc.authorize_net.impl.CIMClientService">
+		<property name="userService" ref="com.brienwheeler.svc.users.userService" />
+		<property name="userAttributeService" ref="com.brienwheeler.svc.users.userAttributeService" />
+		<property name="transactionWrapper" ref="com.brienwheeler.lib.db.transactionWrapper"/>
+		<property name="environment" value="${com.brienwheeler.svc.authorize_net.cimClientService.environment}" />
+		<property name="apiLoginID" value="${com.brienwheeler.svc.authorize_net.cimClientService.apiLoginID}" />
+		<property name="transactionKey" value="${com.brienwheeler.svc.authorize_net.cimClientService.transactionKey}" />
+		<property name="validationMode" value="${com.brienwheeler.svc.authorize_net.cimClientService.validationMode}" />
+	</bean>
+
+</beans>

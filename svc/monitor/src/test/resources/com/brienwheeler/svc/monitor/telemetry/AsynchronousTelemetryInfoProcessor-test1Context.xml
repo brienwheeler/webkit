@@ -1,0 +1,26 @@
+<beans
+	xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd"
+	>
+
+	<bean id="com.brienwheeler.lib.svc.nullSpringStoppableService"
+			class="com.brienwheeler.lib.svc.impl.mocks.NullSpringStoppableService"/>
+		
+	<bean id="com.brienwheeler.svc.monitor.telemetry.telemetryPublishService"
+			class="com.brienwheeler.svc.monitor.telemetry.impl.TelemetryPublishService">
+		<property name="processors">			
+			<list>
+				<bean class="com.brienwheeler.svc.monitor.telemetry.impl.SteppedAsynchronousTelemetryInfoProcessor">
+					<property name="processors">			
+						<list>
+							<bean class="com.brienwheeler.svc.monitor.telemetry.impl.TelemetryRecordingProcessor"/>
+							<bean class="com.brienwheeler.lib.monitor.telemetry.impl.TelemetryInfoJsonLogger"/>
+						</list>
+					</property>
+				</bean>
+			</list>
+		</property>
+	</bean>
+			
+</beans>

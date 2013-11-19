@@ -1,0 +1,41 @@
+<beans
+	xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd"
+	>
+
+	<bean id="com.brienwheeler.lib.db.appEntityManagerFactory.PropertyPlaceholderConfigurer"
+			class="com.brienwheeler.lib.spring.beans.PropertyPlaceholderConfigurer">
+		<property name="placeholderOrder" value="LIBRARY"/>
+		<property name="locations">
+			<list>
+				<value>classpath:com/brienwheeler/lib/db/appEntityManagerFactory.properties</value>
+			</list>
+		</property>
+	</bean>
+
+	<import resource="classpath:com/brienwheeler/lib/db/appDataSource.xml"/>
+
+	<bean id="com.brienwheeler.lib.db.appEntityManagerFactory"
+			class="org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean">
+		<property name="dataSource" ref="com.brienwheeler.lib.db.appDataSource" />
+		<property name="jpaVendorAdapter">
+			<bean class="org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter"/>
+		</property>
+		<property name="persistenceUnitPostProcessors">
+			<list>
+				<bean class="com.brienwheeler.lib.db.MergingPersistenceUnitPostProcessor">
+					<property name="properties">
+						<map>
+							<entry key="hibernate.dialect" value="${com.brienwheeler.lib.db.appEntityManagerFactory.hibernate.dialect}"/>
+							<entry key="hibernate.hbm2ddl.auto" value="${com.brienwheeler.lib.db.appEntityManagerFactory.hibernate.hbm2ddl.auto}"/>
+						</map>
+					</property>
+				</bean>
+			</list>
+		</property>
+		<property name="persistenceXmlLocation" value="${com.brienwheeler.lib.db.appEntityManagerFactory.persistenceXmlLocation}"/>
+		<property name="persistenceUnitName" value="AppPersistenceUnit"/>
+	</bean>
+
+</beans>

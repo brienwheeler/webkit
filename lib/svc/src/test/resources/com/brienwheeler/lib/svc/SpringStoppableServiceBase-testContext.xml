@@ -1,0 +1,49 @@
+<beans
+	xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd"
+	>
+
+	<bean id="com.brienwheeler.lib.svc.nullSpringStoppableService-autowired"
+			class="com.brienwheeler.lib.svc.impl.mocks.NullSpringStoppableService"/>
+		
+	<bean id="com.brienwheeler.lib.svc.nullSpringStoppableService-autowireDisabled"
+			class="com.brienwheeler.lib.svc.impl.mocks.NullSpringStoppableService">
+		<property name="autowireInterventionListeners" value="false"/>
+		<property name="autowireTelemetryPublishers" value="false"/>
+		<property name="autowireWorkPublishers" value="false"/>
+	</bean>
+
+	<bean id="com.brienwheeler.lib.svc.nullSpringStoppableService-manuallyWired"
+			class="com.brienwheeler.lib.svc.impl.mocks.NullSpringStoppableService">
+		<property name="interventionListeners">
+			<set>
+				<bean class="com.brienwheeler.lib.monitor.intervene.mocks.MockInterventionListener2"/>
+			</set>
+		</property>
+		<property name="telemetryPublishers">
+			<set>
+				<bean class="com.brienwheeler.lib.monitor.telemetry.mocks.MockTelemetryPublishService2"/>
+			</set>
+		</property>
+		<property name="workPublishers">
+			<set>
+				<bean class="com.brienwheeler.lib.monitor.work.mocks.MockWorkPublishService2"/>
+			</set>
+		</property>
+	</bean>
+
+	<bean id="com.brienwheeler.lib.svc.nullSpringStoppableService-gracePeriod10"
+			class="com.brienwheeler.lib.svc.impl.mocks.NullSpringStoppableService">
+		<property name="stopGracePeriod" value="10"/>
+	</bean>
+
+	<bean id="com.brienwheeler.lib.monitor.intervene.mockInterventionListener"
+			class="com.brienwheeler.lib.monitor.intervene.mocks.MockInterventionListener"/>
+			
+	<bean id="com.brienwheeler.lib.monitor.telemetry.mockTelemetryPublishService"
+			class="com.brienwheeler.lib.monitor.telemetry.mocks.MockTelemetryPublishService"/>
+			
+	<bean id="com.brienwheeler.lib.monitor.work.mockWorkPublishService"
+			class="com.brienwheeler.lib.monitor.work.mocks.MockWorkPublishService"/>
+</beans>

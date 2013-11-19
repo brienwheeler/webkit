@@ -1,0 +1,75 @@
+<project 
+	xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
+	>
+		
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>com.brienwheeler.web</groupId>
+        <artifactId>pom-web</artifactId>
+        <version>1.0</version>
+    </parent>
+
+    <artifactId>web-spring-security</artifactId>
+    <packaging>jar</packaging>
+
+	<dependencies>
+
+    	<!--
+    	   - Compile Dependencies 
+    	   -->
+    	   
+		<dependency>
+			<groupId>com.brienwheeler.svc</groupId>
+			<artifactId>svc-users</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework.security</groupId>
+			<artifactId>spring-security-web</artifactId>
+		</dependency>
+		
+		<!-- If you use the SetUserInSessionInterceptor you must include this -->
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-webmvc</artifactId>
+			<optional>true</optional>
+		</dependency>
+
+		<!--
+		   - Runtime Dependencies
+		   -->
+		
+		<dependency>
+			<groupId>com.brienwheeler.lib</groupId>
+			<artifactId>lib-spring-beans</artifactId>
+			<scope>runtime</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework.security</groupId>
+			<artifactId>spring-security-config</artifactId>
+			<scope>runtime</scope>
+		</dependency>
+		
+		<dependency>
+			<groupId>org.springframework.security</groupId>
+			<artifactId>spring-security-taglibs</artifactId>
+			<scope>runtime</scope>
+		</dependency>
+
+		<!--
+		   - Provided Dependencies
+		   -->
+		
+		<dependency>
+			<groupId>javax.servlet</groupId>
+			<artifactId>servlet-api</artifactId>
+			<scope>provided</scope>
+		</dependency>
+		
+	</dependencies>
+	
+</project>

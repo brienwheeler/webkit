@@ -1,0 +1,20 @@
+<jsp:root
+	xmlns:c="http://java.sun.com/jsp/jstl/core"
+	xmlns:jawr="http://jawr.net/tags"
+	xmlns:jsp="http://java.sun.com/JSP/Page"
+	xmlns:spring="http://www.springframework.org/tags"
+	version="2.0"
+	>
+
+	<!--
+	   - Convenience tag that uses a spring:message tag to set the alt text for
+	   - a JAWR img tag. 
+	   -->
+	<jsp:directive.tag language="java"/>
+
+	<jsp:directive.attribute name="src" type="java.lang.String" required="true"/>
+	<jsp:directive.attribute name="code" type="java.lang.String" required="false"/>
+	
+	<c:set var="tempAlt"><spring:message code="${code}"/></c:set>
+	<jawr:img src="${src}" alt="${tempAlt}"/>
+</jsp:root>

@@ -1,0 +1,36 @@
+<project 
+	xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
+	>
+
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>com.brienwheeler</groupId>
+        <artifactId>pom-root</artifactId>
+        <version>1.0</version>
+    </parent>
+
+    <groupId>com.brienwheeler.lib</groupId>
+    <artifactId>pom-lib</artifactId>
+    <packaging>pom</packaging>
+
+    <modules>
+        <module>concurrent</module>
+        <module>db</module>
+        <module>email</module>
+        <module>io</module>
+        <module>jmx</module>
+        <module>logging</module>
+        <module>logging-defconfig</module>
+        <module>monitor</module>
+        <module>security</module>
+        <module>spring-beans</module>
+        <module>svc</module>
+        <module>test</module>
+        <module>util</module>
+        <module>validation</module>
+    </modules>
+    
+</project>

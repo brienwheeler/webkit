@@ -1,0 +1,19 @@
+<beans
+	xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd"
+	>
+
+	<bean id="com.brienwheeler.samples.userapp.dataAccess.PropertyPlaceholderConfigurer"
+			class="com.brienwheeler.lib.spring.beans.PropertyPlaceholderConfigurer">
+		<property name="placeholderOrder" value="APPLICATION"/>
+		<property name="locations">
+			<list>
+				<value>classpath:com/brienwheeler/sampleapp/lib/data/dataAccess.properties</value>
+			</list>
+		</property>
+	</bean>
+
+	<import resource="classpath:com/brienwheeler/lib/db/appTransactionManager.xml"/>
+
+</beans>

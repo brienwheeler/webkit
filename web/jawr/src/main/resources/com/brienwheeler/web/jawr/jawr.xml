@@ -1,0 +1,67 @@
+<beans
+	xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd"
+	>
+
+	<bean id="com.brienwheeler.web.jawr.jawr.PropertyPlaceholderConfigurer"
+			class="com.brienwheeler.lib.spring.beans.PropertyPlaceholderConfigurer">
+		<property name="placeholderOrder" value="LIBRARY"/>
+		<property name="locations">
+			<list>
+				<value>classpath:com/brienwheeler/web/jawr/jawr.properties</value>
+			</list>
+		</property>
+	</bean>
+
+	<bean id="com.brienwheeler.web.jawr.jawrParent"
+			abstract="true"
+			class="net.jawr.web.servlet.JawrSpringController">
+
+		<!-- Must match the mapping of the Spring MVC Dispatcher Servlet -->
+		<!-- Empty supports a servlet-mapping of "/" -->
+		<property name="mapping" value="${com.brienwheeler.web.jawr.jawrParent.mapping}"/>
+
+		<property name="configLocation" value="${com.brienwheeler.web.jawr.jawrParent.configLocation}"/>
+
+		<property name="configuration">
+			<props>
+				<prop key="jawr.debug.on">${com.brienwheeler.web.jawr.jawrParent.debug}</prop>
+				<prop key="jawr.gzip.on">${com.brienwheeler.web.jawr.jawrParent.gzip}</prop>
+				<prop key="jawr.strict.mode">${com.brienwheeler.web.jawr.jawrParent.strictMode}</prop>
+				<prop key="jawr.js.bundle.basedir">${com.brienwheeler.web.jawr.jawrParent.jsBaseDir}</prop>
+				<prop key="jawr.css.bundle.basedir">${com.brienwheeler.web.jawr.jawrParent.cssBaseDir}</prop>
+			</props>
+		</property>
+	</bean>
+	
+	<bean id="com.brienwheeler.web.jawr.jawrJsController"
+			parent="com.brienwheeler.web.jawr.jawrParent"/>
+
+	<bean id="com.brienwheeler.web.jawr.jawrImgController"
+			parent="com.brienwheeler.web.jawr.jawrParent">
+		<property name="type" value="img"/>
+	</bean>
+
+	<bean id="com.brienwheeler.web.jawr.jawrCssController"
+			parent="com.brienwheeler.web.jawr.jawrParent">
+		<property name="type" value="css"/>
+	</bean>
+
+	<!-- Map the URLs for the JAWR controllers -->
+	<bean class="org.springframework.web.servlet.handler.SimpleUrlHandlerMapping">
+		<property name="mappings">
+			<props>
+				<prop key="/**/*.js">com.brienwheeler.web.jawr.jawrJsController</prop>
+				<prop key="/**/*.jpg">com.brienwheeler.web.jawr.jawrImgController</prop>
+				<prop key="/**/*.png">com.brienwheeler.web.jawr.jawrImgController</prop>
+				<prop key="/**/*.css">com.brienwheeler.web.jawr.jawrCssController</prop>
+			</props>
+		</property>
+	</bean>
+
+	<!-- Make sure the MVC app has a SimpleControllerHandlerAdapter for the JAWR controllers -->
+	<bean id="com.brienwheeler.web.jawr.simpleControllerHandlerAdapter"
+			class="org.springframework.web.servlet.mvc.SimpleControllerHandlerAdapter"/>
+	
+</beans>

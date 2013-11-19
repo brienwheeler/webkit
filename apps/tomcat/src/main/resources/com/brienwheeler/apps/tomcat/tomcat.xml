@@ -1,0 +1,25 @@
+<beans
+	xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd"
+	>
+
+	<bean id="com.brienwheeler.apps.tomcat.tomcat.PropertyPlaceholderConfigurer"
+			class="com.brienwheeler.lib.spring.beans.PropertyPlaceholderConfigurer">
+		<property name="placeholderOrder" value="LIBRARY"/>
+		<property name="locations">
+			<list>
+				<value>classpath:com/brienwheeler/apps/tomcat/tomcat.properties</value>
+			</list>
+		</property>
+	</bean>
+
+	<bean id="com.brienwheeler.apps.tomcat.tomcat"
+			class="com.brienwheeler.apps.tomcat.TomcatBean">
+		<property name="baseDirectory" value="${com.brienwheeler.apps.tomcat.tomcat.baseDirectory}"/>
+		<property name="webAppBase" value="${com.brienwheeler.apps.tomcat.tomcat.webAppBase}"/>
+		<property name="contextRoot" value="${com.brienwheeler.apps.tomcat.tomcat.contextRoot}"/>
+		<property name="port" value="${com.brienwheeler.apps.tomcat.tomcat.port}"/>
+	</bean>
+
+</beans>

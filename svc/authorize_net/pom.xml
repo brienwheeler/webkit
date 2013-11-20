@@ -33,7 +33,7 @@
 
 		<dependency>
 			<groupId>net.authorize</groupId>
-			<artifactId>anet_java_sdk</artifactId>
+			<artifactId>anet-java-sdk</artifactId>
 		</dependency>
 		
 		<!-- 

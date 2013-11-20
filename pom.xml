@@ -46,7 +46,7 @@
 		<version.plugin.maven-taglib>2.4</version.plugin.maven-taglib>
 		<version.plugin.maven-war>2.1.1</version.plugin.maven-war>
 				
-		<version.anet_java_sdk>1.4.6</version.anet_java_sdk>
+		<version.anet-java-sdk>1.4.6</version.anet-java-sdk>
 		<version.aspectj>1.6.11</version.aspectj>
 		<version.commons-codec>1.8</version.commons-codec>
 		<version.commons-logging-api>1.1</version.commons-logging-api>
@@ -644,8 +644,8 @@
 	
 			<dependency>
 				<groupId>net.authorize</groupId>
-				<artifactId>anet_java_sdk</artifactId>
-				<version>${version.anet_java_sdk}</version>
+				<artifactId>anet-java-sdk</artifactId>
+				<version>${version.anet-java-sdk}</version>
 			</dependency>
 			
 			<dependency>

@@ -240,16 +240,31 @@
                         <goals>
                             <goal>exec</goal>
                         </goals>
+                        <configuration>
+                            <executable>mvn</executable>
+                            <arguments>
+                                <argument>install:install-file</argument>
+                                <argument>-Dfile=${basedir}/3rdparty/net.authorize/anet-java-sdk-1.4.6.jar</argument>
+                                <argument>-DpomFile=${basedir}/3rdparty/net.authorize/anet-java-sdk-1.4.6.pom</argument>
+                            </arguments>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>install-yahoo</id>
+                        <phase>validate</phase>
+                        <goals>
+                            <goal>exec</goal>
+                        </goals>
+                        <configuration>
+                            <executable>mvn</executable>
+                            <arguments>
+                                <argument>install:install-file</argument>
+                                <argument>-Dfile=${basedir}/3rdparty/com.yahoo/yui-3.8.0.js</argument>
+                                <argument>-DpomFile=${basedir}/3rdparty/com.yahoo/yui-3.8.0.pom</argument>
+                            </arguments>
+                        </configuration>
                     </execution>
                 </executions>
-                <configuration>
-                    <executable>mvn</executable>
-                    <arguments>
-                        <argument>install:install-file</argument>
-                        <argument>-Dfile=${basedir}/3rdparty/net.authorize/anet-java-sdk-1.4.6.jar</argument>
-                        <argument>-DpomFile=${basedir}/3rdparty/net.authorize/anet-java-sdk-1.4.6.pom</argument>
-                    </arguments>
-                </configuration>
             </plugin>
         </plugins>
 

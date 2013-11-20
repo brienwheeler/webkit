@@ -24,11 +24,14 @@
 package com.brienwheeler.svc.monitor.telemetry.impl;
 
 import java.io.IOException;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.junit.Test;
+import org.springframework.test.util.ReflectionTestUtils;
 
+import com.brienwheeler.lib.io.ReconnectingSocket;
 import com.brienwheeler.lib.io.TestListener;
 import com.brienwheeler.lib.monitor.telemetry.TelemetryInfo;
 import com.brienwheeler.lib.util.ValidationException;
@@ -100,7 +103,8 @@ public class GraphiteTelemetryInfoProcessorTest
 	}
 	
 	@Test
-	public void testProcess() throws IOException
+	@SuppressWarnings("unchecked")
+	public void testProcess() throws IOException, InterruptedException
 	{
 		TestListener testListener = new TestListener();
 		
@@ -110,6 +114,11 @@ public class GraphiteTelemetryInfoProcessorTest
 		
 		processor.start();
 		testListener.accept(); // wait for connect
+		
+		AtomicReference<ReconnectingSocket> socket = (AtomicReference<ReconnectingSocket>)
+				ReflectionTestUtils.getField(processor, "reconnectingSocket");
+		while (!socket.get().isConnected())
+			Thread.sleep(5L);
 		
 		try {
 			TelemetryInfo info = new TelemetryInfo(INFO_NAME);

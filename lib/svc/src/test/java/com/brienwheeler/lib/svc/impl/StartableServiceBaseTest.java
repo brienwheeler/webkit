@@ -270,10 +270,10 @@ public class StartableServiceBaseTest
 
 		// this thread will block until thread1 finishes onStart
 		stepper2.releaseAndWaitDone(); // this step gets it past the state check into waitForStateChange
-		stepper2.interrupt(); // this thread will be interrupted instead of blocking
+		stepper2.interruptAndWait(); // this thread will be interrupted instead of blocking
+		stepper2.releaseAndWaitDone();
 		
 		stepper1.releaseAndWaitDone();
-		stepper2.waitDone();
 		verifyState(service, ServiceState.RUNNING);
 		verifyRefCount(service, 1);
 		Assert.assertEquals(ServiceOperationException.class, stepper2.getTestThrowable().getClass());

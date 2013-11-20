@@ -294,10 +294,10 @@ public class StoppableServiceBaseTest
 
 		// this thread will block until thread1 finishes onStop
 		stepper2.releaseAndWaitDone(); // this step gets it past the state check into waitForStateChange
-		stepper2.interrupt(); // this thread will be interrupted instead of blocking
+		stepper2.interruptAndWait(); // this thread will be interrupted instead of blocking
+		stepper2.releaseAndWaitDone();
 		
 		stepper1.releaseAndWaitDone();
-		stepper2.waitDone();
 		
 		verifyState(service, ServiceState.STOPPED);
 		verifyRefCount(service, 0);
@@ -558,7 +558,8 @@ public class StoppableServiceBaseTest
 		stepper2.releaseAndWaitDone(); // start work
 		stepper1.releaseAndWaitDone(); // try to stop -- this will interrupt stepper 2 after 10ms
 
-		stepper2.waitDone(); // no need to release to finish work -- interrupt took care of that
+		stepper2.waitInterrupt();
+		stepper2.releaseAndWaitDone();
 		
 		stepper1.releaseAndWaitDone(); // STOPPED
 		
@@ -584,11 +585,11 @@ public class StoppableServiceBaseTest
 		stepper1.releaseAndWaitDone(); // RUNNING
 	
 		stepper2.releaseAndWaitDone(); // start work
-		stepper1.release(); // try to stop -- async release -- need to finish work before this can complete
 
-		stepper1.interrupt(); // interrupt stop thread while it's waiting for work threads to drain
-		stepper1.waitDone(); // after interrupt, stepper1 interrupts all work threads and then proceeds to onStop() -- wait for it to get there
-		stepper2.waitDone(); // this was interrupted by stepper1 so no need to releaseAndWaitDone, just waitDone
+		stepper1.interruptAndWait(); // interrupt stop thread while it's waiting for work threads to drain
+		stepper1.releaseAndWaitDone(); // after interrupt, stepper1 interrupts all work threads and then proceeds to onStop() -- wait for it to get there
+		stepper2.waitInterrupt(); // this was interrupted by stepper1
+		stepper2.releaseAndWaitDone();
 		
 		stepper1.releaseAndWaitDone(); // STOP_FAILED
 		

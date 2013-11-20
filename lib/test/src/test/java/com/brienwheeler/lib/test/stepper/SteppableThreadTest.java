@@ -199,8 +199,8 @@ public class SteppableThreadTest
 		SteppableThread stepper = new SteppableOneStep();
 		stepper.start();
 		Thread.sleep(5L);
-		stepper.interrupt();
-		stepper.waitDone();
+		stepper.interruptAndWait();
+		stepper.releaseAndWaitDone();
 		stepper.releaseAndJoin();
 		Assert.assertTrue(stepper.getWasInterrupted());
 	}

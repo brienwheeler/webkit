@@ -35,6 +35,7 @@ public abstract class SteppableThread extends Thread
 	private static final boolean verbose = true; // set to true for easier debugging
 	
 	protected final Log log = LogFactory.getLog(getClass());
+	private final CyclicBarrier interruptProcessed = new CyclicBarrier(2);
 	private final CyclicBarrier stepDone = new CyclicBarrier(2); // this thread and a controlling thread
 	private final CyclicBarrier stepStart = new CyclicBarrier(2);
 	private volatile boolean firstWait = true;
@@ -102,6 +103,29 @@ public abstract class SteppableThread extends Thread
 		waitDone();
 	}
 
+	public void waitInterrupt()
+	{
+		try {
+			verbose("waiting for interrupt processed " + getName());
+			if (interruptProcessed.await() == 0)
+				interruptProcessed.reset();
+		}
+		catch (InterruptedException e) {
+			Thread.currentThread().interrupt();
+			throw new RuntimeException(e);
+		}
+		catch (BrokenBarrierException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	public void interruptAndWait()
+	{
+		verbose("interrupting " + getName());
+		interrupt();
+		waitInterrupt();
+	}
+
 	public Throwable getTestThrowable()
 	{
 		return testThrowable;
@@ -127,40 +151,81 @@ public abstract class SteppableThread extends Thread
 		}
 	}
 	
-	public static void waitForNextStep()
+	private void signalInterruptProcessed()
 	{
-		if (!(Thread.currentThread() instanceof SteppableThread))
-			throw new RuntimeException("can only call waitForNextStep() from inside SteppableThread");
-		SteppableThread thread = (SteppableThread) Thread.currentThread();
-		
-		boolean interrupted = Thread.interrupted(); // test and clear
-		
 		try {
-			if (thread.firstWait) {
-				thread.firstWait = false;
-			}
-			else {
-				thread.verbose("signalling done");
-				if (thread.stepDone.await() == 0)
-					thread.stepDone.reset();
-			}
-			
-			thread.verbose("waiting for release");
-			if (thread.stepStart.await() == 0)
-				thread.stepStart.reset();
+			verbose("signalling interrupt processed " + getName());
+			if (interruptProcessed.await() == 0)
+				interruptProcessed.reset();
 		}
 		catch (InterruptedException e) {
-			thread.verbose("interrupted");
-			interrupted = true;
-			thread.stepStart.reset();
+			throw new RuntimeException(e);
 		}
 		catch (BrokenBarrierException e) {
 			throw new RuntimeException(e);
 		}
+	}
+	
+	private void waitForNextStepInternal()
+	{
+		boolean interrupted = Thread.interrupted(); // test and clear
+		
+		try {
+			boolean done = false;
+			while (!done) {
+				try {
+					if (firstWait) {
+						firstWait = false;
+					}
+					else {
+						verbose("signalling done");
+						if (stepDone.await() == 0)
+							stepDone.reset();
+					}
+					done = true;
+				}
+				catch (InterruptedException e) {
+					verbose("interrupted");
+					interrupted = true;
+					stepDone.reset();
+					signalInterruptProcessed();
+				}
+				catch (BrokenBarrierException e) {
+					throw new RuntimeException(e);
+				}
+			}
+			
+			done = false;
+			while (!done) {
+				try {
+					verbose("waiting for release");
+					if (stepStart.await() == 0)
+						stepStart.reset();
+					done = true;
+				}
+				catch (InterruptedException e) {
+					verbose("interrupted");
+					interrupted = true;
+					stepStart.reset();
+					signalInterruptProcessed();
+				}
+				catch (BrokenBarrierException e) {
+					throw new RuntimeException(e);
+				}
+			}
+		}
 		finally {
 			if (interrupted)
-				thread.interrupt();
+				interrupt();
 		}
+	}
+	
+	public static void waitForNextStep()
+	{
+		if (!(Thread.currentThread() instanceof SteppableThread))
+			throw new RuntimeException("can only call waitForNextStep() from inside SteppableThread");
+		((SteppableThread) Thread.currentThread()).waitForNextStepInternal();
+		
 	}
 	
 	protected void verbose(String message)

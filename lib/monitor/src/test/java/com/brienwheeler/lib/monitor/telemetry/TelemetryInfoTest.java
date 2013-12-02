@@ -216,12 +216,14 @@ public class TelemetryInfoTest
 		long sleepStart = System.currentTimeMillis();
 		Thread.sleep(10L);
 		long targetDelta = System.currentTimeMillis() - sleepStart;
+		if (targetDelta > 12L)
+			log.warn("targetDelta > 12ms: " + targetDelta + "ms");
 		
 		telemetryInfo.markDelta(ATTR);
 		long delta = ((Long) telemetryInfo.get(ATTR)).longValue();
 		
 		if (Math.abs(delta - targetDelta) > 2L)
-			log.warn("delta not between " + (targetDelta - 2) + "ms and " + (targetDelta + 2) + "ms: " + delta + "ms");
+			log.error("delta not between " + (targetDelta - 2) + "ms and " + (targetDelta + 2) + "ms: " + delta + "ms");
 		Assert.assertTrue(Math.abs(delta - targetDelta) <= 2L);
 	}
 	

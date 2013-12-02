@@ -212,12 +212,17 @@ public class TelemetryInfoTest
 	public void testMarkDelta() throws InterruptedException
 	{
 		TelemetryInfo telemetryInfo = new TelemetryInfo(NAME, log);
+
+		long sleepStart = System.currentTimeMillis();
 		Thread.sleep(10L);
+		long targetDelta = System.currentTimeMillis() - sleepStart;
+		
 		telemetryInfo.markDelta(ATTR);
 		long delta = ((Long) telemetryInfo.get(ATTR)).longValue();
-		if (Math.abs(delta - 10L) > 2L)
-			log.warn("delta not between 8ms and 12ms: " + delta + "ms");
-		Assert.assertTrue(Math.abs(delta - 10L) <= 2L);
+		
+		if (Math.abs(delta - targetDelta) > 2L)
+			log.warn("delta not between " + (targetDelta - 2) + "ms and " + (targetDelta + 2) + "ms: " + delta + "ms");
+		Assert.assertTrue(Math.abs(delta - targetDelta) <= 2L);
 	}
 	
 	@Test

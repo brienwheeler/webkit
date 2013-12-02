@@ -216,10 +216,10 @@ public class TelemetryInfoTest
 		long sleepStart = System.currentTimeMillis();
 		Thread.sleep(10L);
 		long targetDelta = System.currentTimeMillis() - sleepStart;
+		telemetryInfo.markDelta(ATTR);
+
 		if (targetDelta > 12L)
 			log.warn("targetDelta > 12ms: " + targetDelta + "ms");
-		
-		telemetryInfo.markDelta(ATTR);
 		long delta = ((Long) telemetryInfo.get(ATTR)).longValue();
 		
 		if (Math.abs(delta - targetDelta) > 2L)

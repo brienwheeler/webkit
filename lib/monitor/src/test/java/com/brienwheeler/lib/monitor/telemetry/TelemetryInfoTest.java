@@ -214,7 +214,10 @@ public class TelemetryInfoTest
 		TelemetryInfo telemetryInfo = new TelemetryInfo(NAME, log);
 		Thread.sleep(10L);
 		telemetryInfo.markDelta(ATTR);
-		Assert.assertTrue(Math.abs(((Long) telemetryInfo.get(ATTR)).longValue() - 10L) <= 2L);
+		long delta = ((Long) telemetryInfo.get(ATTR)).longValue();
+		if (Math.abs(delta - 10L) > 2L)
+			log.warn("delta not between 8ms and 12ms: " + delta + "ms");
+		Assert.assertTrue(Math.abs(delta - 10L) <= 2L);
 	}
 	
 	@Test

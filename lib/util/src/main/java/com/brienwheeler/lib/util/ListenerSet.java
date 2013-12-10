@@ -40,7 +40,7 @@ public class ListenerSet<ListenerInterfaceType>
 	
 	public void addListener(ListenerInterfaceType listener)
 	{
-		listeners.add(listener);
+		listeners.addIfAbsent(listener);
 	}
 	
 	public void removeListener(ListenerInterfaceType listener)

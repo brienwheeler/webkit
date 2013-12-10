@@ -39,6 +39,23 @@ public class ListenerSetTest
 		Assert.assertEquals(2, internalList.size());
 	}
 	
+	@SuppressWarnings("unchecked")
+	@Test
+	public void testAddSameListenerTwice()
+	{
+		ListenerSet<TestListenerInterface> listeners = new ListenerSet<TestListenerInterface>(log);
+		CopyOnWriteArrayList<TestListenerInterface> internalList = (CopyOnWriteArrayList<TestListenerInterface>) ReflectionTestUtils.getField(listeners, "listeners");
+		
+		Assert.assertEquals(0, internalList.size());
+
+		TestListenerInterface testListener1 = new TestListener();
+		listeners.addListener(testListener1);
+		Assert.assertEquals(1, internalList.size());
+
+		listeners.addListener(testListener1);
+		Assert.assertEquals(1, internalList.size());
+	}
+	
 	@Test
 	public void testCallEmptySet()
 	{

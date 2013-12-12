@@ -37,6 +37,7 @@ public class GraphiteTelemetryInfoProcessor extends StoppableTelemetryInfoProces
 {
 	private static final Log log = LogFactory.getLog(GraphiteTelemetryInfoProcessor.class);
 	
+	private String globalPrefix = null;
 	private String hostname = "";
 	private int port = 2003;
 	private final AtomicReference<ReconnectingSocket> reconnectingSocket = new AtomicReference<ReconnectingSocket>();
@@ -57,6 +58,14 @@ public class GraphiteTelemetryInfoProcessor extends StoppableTelemetryInfoProces
 		this.port = port;
 	}
 
+	public void setGlobalPrefix(String globalPrefix)
+	{
+		if (globalPrefix == null || globalPrefix.trim().isEmpty())
+			this.globalPrefix = null;
+		else
+			this.globalPrefix = globalPrefix.trim();
+	}
+	
 	@Override
 	public void onStart()
 	{
@@ -82,7 +91,8 @@ public class GraphiteTelemetryInfoProcessor extends StoppableTelemetryInfoProces
 		if (socket == null || !socket.isConnected())
 			return;
 
-		String name = telemetryInfo.getName();
+		String name = (globalPrefix == null) ? "" : (globalPrefix + ".");
+		name += telemetryInfo.getName();
 		long createdAt = telemetryInfo.getCreatedAt() / 1000; // Graphite uses UNIX epoch
 
 		StringBuffer data = new StringBuffer(256);

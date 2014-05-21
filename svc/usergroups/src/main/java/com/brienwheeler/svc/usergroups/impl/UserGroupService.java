@@ -26,12 +26,13 @@ package com.brienwheeler.svc.usergroups.impl;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.brienwheeler.lib.monitor.work.MonitoredWork;
+import com.brienwheeler.lib.svc.GracefulShutdown;
 import org.springframework.beans.factory.annotation.Required;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.brienwheeler.lib.db.DbValidationUtils;
-import com.brienwheeler.lib.svc.MonitoredWork;
 import com.brienwheeler.lib.svc.impl.SpringStoppableServiceBase;
 import com.brienwheeler.lib.util.ValidationUtils;
 import com.brienwheeler.svc.usergroups.DuplicateUserGroupException;
@@ -61,6 +62,7 @@ public class UserGroupService extends SpringStoppableServiceBase
 	@Override
 	@Transactional
 	@MonitoredWork
+    @GracefulShutdown
 	public UserGroup createUserGroup(String groupName, String groupType)
 	{
 		groupName = ValidationUtils.assertNotEmpty(groupName, "groupName cannot be empty");
@@ -76,6 +78,7 @@ public class UserGroupService extends SpringStoppableServiceBase
 	@Override
 	@Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
 	@MonitoredWork
+    @GracefulShutdown
 	public UserGroup findByNameAndType(String groupName, String groupType)
 	{
 		groupName = ValidationUtils.assertNotEmpty(groupName, "groupName cannot be empty");
@@ -87,6 +90,7 @@ public class UserGroupService extends SpringStoppableServiceBase
 	@Override
 	@Transactional
 	@MonitoredWork
+    @GracefulShutdown
 	public void addUserToGroup(UserGroup userGroup, User user)
 	{
 		DbValidationUtils.assertPersisted(userGroup);
@@ -103,6 +107,7 @@ public class UserGroupService extends SpringStoppableServiceBase
 	@Override
 	@Transactional
 	@MonitoredWork
+    @GracefulShutdown
 	public void removeUserFromGroup(UserGroup userGroup, User user)
 	{
 		DbValidationUtils.assertPersisted(userGroup);
@@ -116,6 +121,7 @@ public class UserGroupService extends SpringStoppableServiceBase
 	@Override
 	@Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
 	@MonitoredWork
+    @GracefulShutdown
 	public List<UserGroup> getGroupsForUser(User user)
 	{
 		DbValidationUtils.assertPersisted(user);
@@ -130,6 +136,7 @@ public class UserGroupService extends SpringStoppableServiceBase
 	@Override
 	@Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
 	@MonitoredWork
+    @GracefulShutdown
 	public List<UserGroup> getGroupsForUserAndType(User user, String groupType)
 	{
 		DbValidationUtils.assertPersisted(user);
@@ -156,6 +163,7 @@ public class UserGroupService extends SpringStoppableServiceBase
 	@Override
 	@Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
 	@MonitoredWork
+    @GracefulShutdown
 	public List<User> getUsersForGroup(UserGroup userGroup)
 	{
 		DbValidationUtils.assertPersisted(userGroup);

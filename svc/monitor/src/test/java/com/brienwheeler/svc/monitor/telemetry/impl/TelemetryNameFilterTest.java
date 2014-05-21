@@ -23,105 +23,77 @@
  */
 package com.brienwheeler.svc.monitor.telemetry.impl;
 
-import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.brienwheeler.lib.monitor.telemetry.TelemetryInfo;
-
-public class FilteringTelemetryInfoProcessorTest
+public class TelemetryNameFilterTest
 {
 	private static final String INFO_NAME = "InfoName";
 	private static final String NOT_A_MATCH = "NotAMatch";
 	
-	private FilteringTelemetryInfoProcessor processor;
-	private TelemetryRecordingProcessor sink;
-	
+	private TelemetryNameFilter filter;
+
 	@Before
 	public void onSetUp()
 	{
-		processor = new FilteringTelemetryInfoProcessor();
-		sink = new TelemetryRecordingProcessor();
-		processor.setNextProcessor(sink);
-		processor.start();
-	}
-	
-	@After
-	public void onTearDown()
-	{
-		processor.stop(1000L);
-	}
-	
-	private void doProcess()
-	{
-		TelemetryInfo telemetryInfo = new TelemetryInfo(INFO_NAME);
-		telemetryInfo.publish();
-		processor.process(telemetryInfo);
+        filter = new TelemetryNameFilter();
 	}
 	
 	@Test
 	public void testOnProcessNull()
 	{
-		processor.setFilterRecords(null);
-		doProcess();
-		Assert.assertEquals(1, sink.getCount());
+        filter.setFilterRecords(null);
+		Assert.assertEquals(true, filter.process(INFO_NAME));
 	}
 	
 	@Test
 	public void testOnProcessEmpty()
 	{
-		processor.setFilterRecords("  ");
-		doProcess();
-		Assert.assertEquals(1, sink.getCount());
+        filter.setFilterRecords("  ");
+        Assert.assertEquals(true, filter.process(INFO_NAME));
 	}
 	
 	@Test
 	public void testOnProcessInclude()
 	{
-		processor.setFilterRecords("INCLUDE" + TelemetryNameFilter.FIELD_SEPARATOR + INFO_NAME);
-		doProcess();
-		Assert.assertEquals(1, sink.getCount());
+        filter.setFilterRecords("INCLUDE" + TelemetryNameFilter.FIELD_SEPARATOR + INFO_NAME);
+        Assert.assertEquals(true, filter.process(INFO_NAME));
 	}
 	
 	@Test
 	public void testOnProcessExclude()
 	{
-		processor.setFilterRecords("EXCLUDE" + TelemetryNameFilter.FIELD_SEPARATOR + INFO_NAME);
-		doProcess();
-		Assert.assertEquals(0, sink.getCount());
+        filter.setFilterRecords("EXCLUDE" + TelemetryNameFilter.FIELD_SEPARATOR + INFO_NAME);
+        Assert.assertEquals(false, filter.process(INFO_NAME));
 	}
 
 	@Test
 	public void testOnProcessNoMatch()
 	{
-		processor.setFilterRecords("EXCLUDE" + TelemetryNameFilter.FIELD_SEPARATOR + NOT_A_MATCH);
-		doProcess();
-		Assert.assertEquals(1, sink.getCount());
+        filter.setFilterRecords("EXCLUDE" + TelemetryNameFilter.FIELD_SEPARATOR + NOT_A_MATCH);
+        Assert.assertEquals(true, filter.process(INFO_NAME));
 	}
 
 	@Test
 	public void testOnProcessBadFilterSpec()
 	{
-		processor.setFilterRecords("EXCLUDE" + TelemetryNameFilter.FIELD_SEPARATOR + INFO_NAME +
+        filter.setFilterRecords("EXCLUDE" + TelemetryNameFilter.FIELD_SEPARATOR + INFO_NAME +
                 TelemetryNameFilter.FIELD_SEPARATOR + "NOTSUPPOSEDTOBEHERE");
-		doProcess();
-		Assert.assertEquals(1, sink.getCount());
+        Assert.assertEquals(true, filter.process(INFO_NAME));
 	}
 
 	@Test
 	public void testOnProcessBadAction()
 	{
-		processor.setFilterRecords("BADACTION" + TelemetryNameFilter.FIELD_SEPARATOR + INFO_NAME);
-		doProcess();
-		Assert.assertEquals(1, sink.getCount());
+        filter.setFilterRecords("BADACTION" + TelemetryNameFilter.FIELD_SEPARATOR + INFO_NAME);
+        Assert.assertEquals(true, filter.process(INFO_NAME));
 	}
 
 	@Test
 	public void testOnProcessBadPattern()
 	{
-		processor.setFilterRecords("EXCLUDE" + TelemetryNameFilter.FIELD_SEPARATOR + "[a-z");
-		doProcess();
-		Assert.assertEquals(1, sink.getCount());
+        filter.setFilterRecords("EXCLUDE" + TelemetryNameFilter.FIELD_SEPARATOR + "[a-z");
+        Assert.assertEquals(true, filter.process(INFO_NAME));
 	}
 }

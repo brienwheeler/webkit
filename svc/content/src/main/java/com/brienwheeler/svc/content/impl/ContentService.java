@@ -31,7 +31,8 @@ import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
-import com.brienwheeler.lib.svc.MonitoredWork;
+import com.brienwheeler.lib.monitor.work.MonitoredWork;
+import com.brienwheeler.lib.svc.GracefulShutdown;
 import com.brienwheeler.lib.svc.impl.SpringStoppableServiceBase;
 import com.brienwheeler.lib.util.ValidationUtils;
 import com.brienwheeler.svc.content.ContentId;
@@ -65,6 +66,7 @@ public class ContentService extends SpringStoppableServiceBase
 
 	@Override
 	@MonitoredWork
+    @GracefulShutdown
 	public ContentId storeContent(String subdirectory, String extension, Reader reader)
 	{
 		ValidationUtils.assertNotNull(subdirectory, "subdirectory cannot be null");

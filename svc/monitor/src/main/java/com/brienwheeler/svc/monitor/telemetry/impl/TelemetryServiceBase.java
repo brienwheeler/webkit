@@ -24,6 +24,7 @@
 package com.brienwheeler.svc.monitor.telemetry.impl;
 
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 import org.springframework.beans.factory.annotation.Required;
 
@@ -34,9 +35,10 @@ import com.brienwheeler.lib.svc.impl.SpringStoppableServiceBase;
 
 public abstract class TelemetryServiceBase extends SpringStoppableServiceBase
 {
-	protected final TelemetryInfoProcessorMux processorMux = new TelemetryInfoProcessorMux();
-	
-	public TelemetryServiceBase()
+    protected final CopyOnWriteArrayList<ITelemetryInfoProcessor> processors =
+            new CopyOnWriteArrayList<ITelemetryInfoProcessor>();
+
+    public TelemetryServiceBase()
 	{
 		// not allowed for subclasses of this service
 		super.setAutowireTelemetryPublishers(false);
@@ -56,39 +58,55 @@ public abstract class TelemetryServiceBase extends SpringStoppableServiceBase
 		// with onStart and onStop
 		synchronized (state) {
 			// only stop/start the processors if we're running
-			if (getState() == ServiceState.RUNNING) {
-				processorMux.stopProcessors(stopGracePeriod);
-				processorMux.setProcessors(processors);
-				processorMux.startProcessors();
-			}
-			else {
-				processorMux.setProcessors(processors);
-			}
+			if (getState() == ServiceState.RUNNING)
+				stopProcessors();
+
+            this.processors.clear();
+            if (processors != null)
+                this.processors.addAll(processors);
+
+            // only stop/start the processors if we're running
+            if (getState() == ServiceState.RUNNING)
+                startProcessors();
 		}
 	}
 
-	@Override
+    @Override
 	protected void onStart() throws InterruptedException
 	{
 		super.onStart();
 		
 		// start any processors that are services
-		processorMux.startProcessors();
+        startProcessors();
 	}
 
 	@Override
 	protected void onStop() throws InterruptedException
 	{
 		// stop any processors that are services
-		processorMux.stopProcessors(stopGracePeriod);
+        stopProcessors();
 
 		super.onStop();
 	}
 
-	// do not make this a @ServiceMethod because subclasses may want to call
-	// it during shutdown processing.
-	protected void callProcessors(TelemetryInfo telemetryInfo)
-	{
-		processorMux.callProcessors(telemetryInfo);
-	}
+    // do not make this an @GracefulShutdown because subclasses may want to call
+    // it during shutdown processing.
+    protected void callProcessors(TelemetryInfo telemetryInfo)
+    {
+        telemetryInfo.publish();
+        for (ITelemetryInfoProcessor processor : processors)
+            processor.process(telemetryInfo);
+    }
+
+    private void startProcessors()
+    {
+        for (ITelemetryInfoProcessor processor : processors)
+            TelemetryProcessorUtils.tryToStart(processor);
+    }
+
+    private void stopProcessors()
+    {
+        for (ITelemetryInfoProcessor processor : processors)
+            TelemetryProcessorUtils.tryToStop(processor, stopGracePeriod);
+    }
 }

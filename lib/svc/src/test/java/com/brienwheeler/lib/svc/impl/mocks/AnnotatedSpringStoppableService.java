@@ -23,14 +23,14 @@
  */
 package com.brienwheeler.lib.svc.impl.mocks;
 
+import com.brienwheeler.lib.monitor.work.MonitoredWork;
 import com.brienwheeler.lib.svc.GracefulShutdown;
-import com.brienwheeler.lib.svc.MonitoredWork;
 import com.brienwheeler.lib.svc.impl.SpringStoppableServiceBase;
 
 public class AnnotatedSpringStoppableService extends SpringStoppableServiceBase 
 {
-	public static final String WORK_NAME = "testWork";
-	
+    public static final String WORK_NAME = "testWork";
+
 	@GracefulShutdown
 	public void testMethodGracefulShutdown()
 	{
@@ -59,128 +59,81 @@ public class AnnotatedSpringStoppableService extends SpringStoppableServiceBase
 	{
 		throw new Throwable();
 	}
-	
-	@MonitoredWork(gracefulShutdown=false)
-	public void testMethodWorkMethodName(long sleep)
-	{
-		if (sleep > 0) {
-			try {
-				Thread.sleep(sleep);
-			}
-			catch (InterruptedException e) {
-				// unexpected, throw so test fails
-				Thread.currentThread().interrupt();
-				throw new RuntimeException(e);
-			}
-		}
-	}
 
-	@MonitoredWork(value=WORK_NAME, gracefulShutdown=false)
-	public void testMethodWorkName(long sleep)
-	{
-		if (sleep > 0) {
-			try {
-				Thread.sleep(sleep);
-			}
-			catch (InterruptedException e) {
-				// unexpected, throw so test fails
-				Thread.currentThread().interrupt();
-				throw new RuntimeException(e);
-			}
-		}
-	}
+    @MonitoredWork(value=WORK_NAME)
+    public void testMethodWorkName(long sleep)
+    {
+        if (sleep > 0) {
+            try {
+                Thread.sleep(sleep);
+            }
+            catch (InterruptedException e) {
+                // unexpected, throw so test fails
+                Thread.currentThread().interrupt();
+                throw new RuntimeException(e);
+            }
+        }
+    }
 
-	@MonitoredWork(value=MonitoredWork.NO_NAME, gracefulShutdown=false)
-	public void testMethodWorkNoName(long sleep)
-	{
-		if (sleep > 0) {
-			try {
-				Thread.sleep(sleep);
-			}
-			catch (InterruptedException e) {
-				// unexpected, throw so test fails
-				Thread.currentThread().interrupt();
-				throw new RuntimeException(e);
-			}
-		}
-	}
+    @MonitoredWork(value=WORK_NAME)
+    public void testMethodWorkNameRuntimeException(long sleep)
+    {
+        if (sleep > 0) {
+            try {
+                Thread.sleep(sleep);
+            }
+            catch (InterruptedException e) {
+                // return without throwing so test fails
+                Thread.currentThread().interrupt();
+                return;
+            }
+        }
+        throw new RuntimeException("test");
+    }
 
-	@MonitoredWork(value=MonitoredWork.NO_NAME, gracefulShutdown=false)
-	public void testMethodWorkNoName2(long sleep)
-	{
-		if (sleep > 0) {
-			try {
-				Thread.sleep(sleep);
-			}
-			catch (InterruptedException e) {
-				// unexpected, throw so test fails
-				Thread.currentThread().interrupt();
-				throw new RuntimeException(e);
-			}
-		}
-	}
+    @MonitoredWork(value=WORK_NAME)
+    public void testMethodWorkNameError(long sleep)
+    {
+        if (sleep > 0) {
+            try {
+                Thread.sleep(sleep);
+            }
+            catch (InterruptedException e) {
+                // return without throwing so test fails
+                Thread.currentThread().interrupt();
+                return;
+            }
+        }
+        throw new Error("test");
+    }
 
-	@MonitoredWork(value=WORK_NAME, gracefulShutdown=false)
-	public void testMethodWorkNameInterruptedException(long sleep) throws InterruptedException
-	{
-		if (sleep > 0) {
-			try {
-				Thread.sleep(sleep);
-			}
-			catch (InterruptedException e) {
-				// return without throwing so test fails
-				Thread.currentThread().interrupt();
-				return;
-			}
-		}
-		throw new InterruptedException("test");
-	}
+    @MonitoredWork(value=MonitoredWork.NO_NAME)
+    public void testMethodWorkNoName(long sleep)
+    {
+        if (sleep > 0) {
+            try {
+                Thread.sleep(sleep);
+            }
+            catch (InterruptedException e) {
+                // unexpected, throw so test fails
+                Thread.currentThread().interrupt();
+                throw new RuntimeException(e);
+            }
+        }
+    }
 
-	@MonitoredWork(value=WORK_NAME, gracefulShutdown=false)
-	public void testMethodWorkNameRuntimeException(long sleep)
-	{
-		if (sleep > 0) {
-			try {
-				Thread.sleep(sleep);
-			}
-			catch (InterruptedException e) {
-				// return without throwing so test fails
-				Thread.currentThread().interrupt();
-				return;
-			}
-		}
-		throw new RuntimeException("test");
-	}
-
-	@MonitoredWork(value=WORK_NAME, gracefulShutdown=false)
-	public void testMethodWorkNameError(long sleep)
-	{
-		if (sleep > 0) {
-			try {
-				Thread.sleep(sleep);
-			}
-			catch (InterruptedException e) {
-				// return without throwing so test fails
-				Thread.currentThread().interrupt();
-				return;
-			}
-		}
-		throw new Error("test");
-	}
-	
-	@MonitoredWork(value=WORK_NAME, gracefulShutdown=false)
-	public void testMethodWorkNameThrowable(long sleep) throws Throwable
-	{
-		if (sleep > 0) {
-			try {
-				Thread.sleep(sleep);
-			}
-			catch (InterruptedException e) {
-				// return without throwing so test fails
-				Thread.currentThread().interrupt();
-				return;
-			}
-		}
-		throw new Throwable("test");
-	}
+    @MonitoredWork(value=MonitoredWork.NO_NAME)
+    public void testMethodWorkNoName2(long sleep)
+    {
+        if (sleep > 0) {
+            try {
+                Thread.sleep(sleep);
+            }
+            catch (InterruptedException e) {
+                // unexpected, throw so test fails
+                Thread.currentThread().interrupt();
+                throw new RuntimeException(e);
+            }
+        }
+    }
 }

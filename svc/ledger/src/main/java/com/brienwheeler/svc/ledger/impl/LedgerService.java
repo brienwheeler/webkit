@@ -25,13 +25,14 @@ package com.brienwheeler.svc.ledger.impl;
 
 import java.util.List;
 
+import com.brienwheeler.lib.monitor.work.MonitoredWork;
+import com.brienwheeler.lib.svc.GracefulShutdown;
 import org.springframework.beans.factory.annotation.Required;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.brienwheeler.lib.db.DbValidationUtils;
 import com.brienwheeler.lib.db.domain.DbId;
-import com.brienwheeler.lib.svc.MonitoredWork;
 import com.brienwheeler.lib.svc.impl.SpringStoppableServiceBase;
 import com.brienwheeler.svc.ledger.ILedgerService;
 import com.brienwheeler.svc.ledger.domain.LedgerEntry;
@@ -44,6 +45,7 @@ public class LedgerService extends SpringStoppableServiceBase implements ILedger
 	@Override
 	@Transactional
 	@MonitoredWork
+    @GracefulShutdown
 	public LedgerEntry createLedgerEntry(User user, String detail)
 	{
 		DbValidationUtils.assertPersisted(user);
@@ -56,6 +58,7 @@ public class LedgerService extends SpringStoppableServiceBase implements ILedger
 	@Override
 	@Transactional(readOnly=true, propagation=Propagation.SUPPORTS)
 	@MonitoredWork
+    @GracefulShutdown
 	public List<LedgerEntry> getLedger(DbId<User> userId)
 	{
 		DbValidationUtils.assertPersisted(userId);

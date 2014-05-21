@@ -25,6 +25,7 @@ package com.brienwheeler.svc.monitor.work.impl;
 
 import java.util.concurrent.CopyOnWriteArraySet;
 
+import com.brienwheeler.lib.monitor.work.MonitoredWork;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.InitializingBean;
@@ -37,7 +38,6 @@ import com.brienwheeler.lib.monitor.work.IWorkRecordCollectionProcessor;
 import com.brienwheeler.lib.monitor.work.WorkRecord;
 import com.brienwheeler.lib.monitor.work.WorkRecordCollection;
 import com.brienwheeler.lib.spring.beans.AutowireUtils;
-import com.brienwheeler.lib.svc.MonitoredWork;
 
 public class WorkRecordCollectionTelemetryPublisher
 		implements IWorkRecordCollectionProcessor, ApplicationContextAware, InitializingBean

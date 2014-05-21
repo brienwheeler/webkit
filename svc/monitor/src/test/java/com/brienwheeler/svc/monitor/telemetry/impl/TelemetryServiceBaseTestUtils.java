@@ -36,10 +36,8 @@ public class TelemetryServiceBaseTestUtils
 	@SuppressWarnings("unchecked")
 	public static <T> T findProcessor(TelemetryServiceBase telemetryServiceBase, Class<T> clazz)
 	{
-		TelemetryInfoProcessorMux telemetryInfoProcessorMux = (TelemetryInfoProcessorMux)
-				ReflectionTestUtils.getField(telemetryServiceBase, "processorMux");
 		List<ITelemetryInfoProcessor> processors =
-				(List<ITelemetryInfoProcessor>) ReflectionTestUtils.getField(telemetryInfoProcessorMux, "processors");
+				(List<ITelemetryInfoProcessor>) ReflectionTestUtils.getField(telemetryServiceBase, "processors");
 		if (processors != null)
 		{
 			for (ITelemetryInfoProcessor proc : processors)

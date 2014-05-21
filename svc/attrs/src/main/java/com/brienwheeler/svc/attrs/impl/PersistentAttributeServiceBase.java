@@ -29,6 +29,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.brienwheeler.lib.monitor.work.MonitoredWork;
+import com.brienwheeler.lib.svc.GracefulShutdown;
 import org.springframework.beans.factory.annotation.Required;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -39,7 +41,6 @@ import com.brienwheeler.lib.db.domain.DbId;
 import com.brienwheeler.lib.db.domain.GeneratedIdEntityBase;
 import com.brienwheeler.lib.db.domain.PersistentAttributeBase;
 import com.brienwheeler.lib.svc.IStoppableService;
-import com.brienwheeler.lib.svc.MonitoredWork;
 import com.brienwheeler.lib.svc.impl.SpringStoppableServiceBase;
 import com.brienwheeler.lib.util.ReflectionException;
 import com.brienwheeler.lib.util.ValidationUtils;
@@ -57,6 +58,7 @@ public abstract class PersistentAttributeServiceBase<
 	@Override
 	@Transactional(readOnly=true, propagation=Propagation.SUPPORTS)
 	@MonitoredWork("getAttribute")
+    @GracefulShutdown
 	public Map<String, String> getAttributes(DbId<OwnerClass> owner)
 	{
 		DbValidationUtils.assertPersisted(owner);
@@ -73,6 +75,7 @@ public abstract class PersistentAttributeServiceBase<
 	@Override
 	@Transactional(readOnly=true, propagation=Propagation.SUPPORTS)
 	@MonitoredWork("getAttribute")
+    @GracefulShutdown
 	public String getAttribute(DbId<OwnerClass> owner, String name)
 	{
 		DbValidationUtils.assertPersisted(owner);
@@ -85,6 +88,7 @@ public abstract class PersistentAttributeServiceBase<
 	@Override
 	@Transactional
 	@MonitoredWork
+    @GracefulShutdown
 	public AttrClass setAttribute(OwnerClass owner, String name, String value)
 	{
 		DbValidationUtils.assertPersisted(owner);

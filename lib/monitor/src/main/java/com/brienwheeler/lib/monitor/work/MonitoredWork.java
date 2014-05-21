@@ -21,7 +21,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package com.brienwheeler.lib.svc;
+package com.brienwheeler.lib.monitor.work;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -35,6 +35,4 @@ public @interface MonitoredWork
 	public static final String NO_NAME = ".";
 	
 	String value() default "";
-	
-	boolean gracefulShutdown() default true;
 }

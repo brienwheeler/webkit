@@ -26,6 +26,7 @@ package com.brienwheeler.svc.users.impl;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.brienwheeler.lib.monitor.work.MonitoredWork;
 import org.joda.time.DateTime;
 import org.joda.time.Period;
 import org.springframework.beans.factory.annotation.Required;
@@ -35,7 +36,6 @@ import org.springframework.util.StringUtils;
 import com.brienwheeler.lib.email.EmailAddress;
 import com.brienwheeler.lib.security.HmacSha256;
 import com.brienwheeler.lib.svc.GracefulShutdown;
-import com.brienwheeler.lib.svc.MonitoredWork;
 import com.brienwheeler.lib.svc.impl.SpringStoppableServiceBase;
 import com.brienwheeler.lib.util.EnvironmentUtils;
 import com.brienwheeler.lib.util.OperationDisallowedException;
@@ -102,6 +102,7 @@ public class ForgottenPasswordService extends SpringStoppableServiceBase
 
 	@Override
 	@MonitoredWork
+    @GracefulShutdown
 	public boolean sendForgottenPasswordEmail(EmailAddress emailAddress)
 	{
 		ValidationUtils.assertNotNull(emailAddress, "emailAddress cannot be null");
@@ -149,6 +150,7 @@ public class ForgottenPasswordService extends SpringStoppableServiceBase
 	
 	@Override
 	@MonitoredWork
+    @GracefulShutdown
 	@Transactional
 	public boolean resetPassword(ForgottenPasswordData verificationData, String newHashedPassword)
 	{

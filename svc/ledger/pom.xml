@@ -119,6 +119,10 @@
 							<target>${maven.compiler.target}</target>
 							<forceAjcCompile>true</forceAjcCompile>
 							<aspectLibraries>
+                                <aspectLibrary>
+                                    <groupId>com.brienwheeler.lib</groupId>
+                                    <artifactId>lib-monitor</artifactId>
+                                </aspectLibrary>
 								<aspectLibrary>
 									<groupId>com.brienwheeler.lib</groupId>
 								    <artifactId>lib-svc</artifactId>

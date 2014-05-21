@@ -29,7 +29,7 @@ import com.brienwheeler.svc.monitor.telemetry.IStoppableTelemetryInfoProcessor;
 public abstract class StoppableTelemetryInfoProcessorBase extends StartableTelemetryInfoProcessorBase
 		implements IStoppableTelemetryInfoProcessor
 {
-	protected abstract void onStop(long stopgraceperiod);
+	protected abstract void onStop(long stopGracePeriod);
 	
 	@Override
 	public final void stop(long stopGracePeriod)

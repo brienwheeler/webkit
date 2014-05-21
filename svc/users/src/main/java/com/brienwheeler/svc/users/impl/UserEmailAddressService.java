@@ -26,13 +26,14 @@ package com.brienwheeler.svc.users.impl;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.brienwheeler.lib.monitor.work.MonitoredWork;
+import com.brienwheeler.lib.svc.GracefulShutdown;
 import org.springframework.beans.factory.annotation.Required;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.brienwheeler.lib.email.EmailAddress;
 import com.brienwheeler.lib.email.VerifiableEmailAddress;
-import com.brienwheeler.lib.svc.MonitoredWork;
 import com.brienwheeler.lib.svc.impl.SpringStoppableServiceBase;
 import com.brienwheeler.lib.util.OperationDisallowedException;
 import com.brienwheeler.lib.util.ValidationUtils;
@@ -54,6 +55,7 @@ public class UserEmailAddressService extends SpringStoppableServiceBase implemen
 	@Override
 	@Transactional(readOnly=true, propagation=Propagation.SUPPORTS)
 	@MonitoredWork
+    @GracefulShutdown
 	public User findByEmailAddress(EmailAddress emailAddress)
 	{
 		ValidationUtils.assertNotNull(emailAddress, "emailAddress cannot be null");
@@ -65,6 +67,7 @@ public class UserEmailAddressService extends SpringStoppableServiceBase implemen
 	@Override
 	@Transactional(readOnly=true, propagation=Propagation.SUPPORTS)
 	@MonitoredWork
+    @GracefulShutdown
 	public List<VerifiableEmailAddress> findByUser(User user)
 	{
 		ValidationUtils.assertNotNull(user, "user cannot be null");
@@ -79,6 +82,7 @@ public class UserEmailAddressService extends SpringStoppableServiceBase implemen
 	@Override
 	@Transactional
 	@MonitoredWork
+    @GracefulShutdown
 	public void addEmailAddress(User user, VerifiableEmailAddress emailAddress)
 	{
 		ValidationUtils.assertNotNull(user, "user cannot be null");
@@ -98,6 +102,7 @@ public class UserEmailAddressService extends SpringStoppableServiceBase implemen
 	@Override
 	@Transactional
 	@MonitoredWork
+    @GracefulShutdown
 	public boolean removeEmailAddress(User user, EmailAddress emailAddress)
 	{
 			ValidationUtils.assertNotNull(user, "user cannot be null");

@@ -32,6 +32,7 @@ import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
+import com.brienwheeler.lib.monitor.work.IWorkMonitorProvider;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -49,7 +50,7 @@ import com.brienwheeler.lib.util.ArrayUtils;
 import com.brienwheeler.lib.util.ObjectUtils;
 import com.brienwheeler.lib.util.ValidationUtils;
 
-public abstract class StartableServiceBase implements IStartableService
+public abstract class StartableServiceBase implements IStartableService, IWorkMonitorProvider
 {
 	protected final Log log = LogFactory.getLog(getClass());
 	
@@ -176,8 +177,14 @@ public abstract class StartableServiceBase implements IStartableService
 					workPublisher.deregisterWorkMonitor(workMonitor);
 		}
 	}
-	
-	protected void onStart() throws InterruptedException
+
+    @Override
+    public WorkMonitor getWorkMonitor()
+    {
+        return workMonitor;
+    }
+
+    protected void onStart() throws InterruptedException
 	{
 	}
 
@@ -340,35 +347,6 @@ public abstract class StartableServiceBase implements IStartableService
 		}
 	}
 
-	protected <T> T executeMonitoredWork(String workName, ServiceWork<T> work)
-	{
-		workName = ValidationUtils.assertNotEmpty(workName, "workName cannot be empty");
-		ValidationUtils.assertNotNull(work, "work cannot be null");
-		long startTime = System.currentTimeMillis();
-		try
-		{
-			T value = work.doServiceWork();
-			workMonitor.recordWorkOk(workName,  System.currentTimeMillis() - startTime);
-			return value;
-		}
-		catch (InterruptedException e)
-		{
-			workMonitor.recordWorkError(workName,  System.currentTimeMillis() - startTime);
-			Thread.currentThread().interrupt();
-			throw new ServiceStateException("service operation interrupted", e);
-		}
-		catch (RuntimeException e)
-		{
-			workMonitor.recordWorkError(workName,  System.currentTimeMillis() - startTime);
-			throw e;
-		}
-		catch (Error e)
-		{
-			workMonitor.recordWorkError(workName,  System.currentTimeMillis() - startTime);
-			throw e;
-		}
-	}
-	
 	protected void recordInterventionRequest(String message)
 	{
 		log.error(message);

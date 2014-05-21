@@ -39,12 +39,13 @@ import javax.mail.Transport;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 
+import com.brienwheeler.lib.monitor.work.MonitoredWork;
+import com.brienwheeler.lib.svc.GracefulShutdown;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Required;
 
 import com.brienwheeler.lib.email.EmailAddress;
-import com.brienwheeler.lib.svc.MonitoredWork;
 import com.brienwheeler.lib.svc.ServiceOperationException;
 import com.brienwheeler.lib.svc.impl.SpringStoppableServiceBase;
 import com.brienwheeler.lib.util.ValidationUtils;
@@ -148,6 +149,7 @@ public class EmailService extends SpringStoppableServiceBase
 	
 	@Override
 	@MonitoredWork
+    @GracefulShutdown
 	public void sendEmail(EmailAddress recipient, String subject, String body)
 	{
 		doSendEmail(recipient, subject, body);
@@ -155,6 +157,7 @@ public class EmailService extends SpringStoppableServiceBase
 	
 	@Override
 	@MonitoredWork
+    @GracefulShutdown
 	public void sendEmail(EmailAddress recipient, String templateName, Map<String, Object> templateModel)
 	{
 		// use empty string for default subject
@@ -163,6 +166,7 @@ public class EmailService extends SpringStoppableServiceBase
 	
 	@Override
 	@MonitoredWork
+    @GracefulShutdown
 	public void sendEmail(EmailAddress recipient, String defaultSubject,
 			String templateName, Map<String, Object> templateModel)
 	{

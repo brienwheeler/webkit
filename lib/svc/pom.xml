@@ -96,6 +96,12 @@
 								<exclude>**/SpringStartableServiceBaseTest.java</exclude>
 								<exclude>**/SpringStoppableServiceBaseTest.java</exclude>
 							</excludes>
+                            <aspectLibraries>
+                                <aspectLibrary>
+                                    <groupId>com.brienwheeler.lib</groupId>
+                                    <artifactId>lib-monitor</artifactId>
+                                </aspectLibrary>
+                            </aspectLibraries>
 						</configuration>
 					</execution>
 				</executions>

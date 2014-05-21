@@ -32,20 +32,16 @@
 		<property name="processors">			
 			<list>
 				<bean class="com.brienwheeler.lib.monitor.telemetry.impl.TelemetryInfoJsonLogger"/>
-				<ref bean="com.brienwheeler.svc.monitor.telemetry.filteredGraphiteTelemetryInfoProcessor"/>
+				<ref bean="com.brienwheeler.svc.monitor.telemetry.impl.GraphiteTelemetryInfoProcessor"/>
 			</list>
 		</property>
 	</bean>
 
-	<bean id="com.brienwheeler.svc.monitor.telemetry.filteredGraphiteTelemetryInfoProcessor"
-			class="com.brienwheeler.svc.monitor.telemetry.impl.FilteringTelemetryInfoProcessor">
-		<property name="filterRecords" value="${com.brienwheeler.svc.monitor.telemetry.filteredGraphiteTelemetryInfoProcessor.filterRecords}"/>
-		<property name="nextProcessor">
-			<bean class="com.brienwheeler.svc.monitor.telemetry.impl.GraphiteTelemetryInfoProcessor">
-				<property name="hostname" value="${com.brienwheeler.svc.monitor.telemetry.graphiteTelemetryInfoProcessor.hostname}"/>
-				<property name="port" value="${com.brienwheeler.svc.monitor.telemetry.graphiteTelemetryInfoProcessor.port}"/>
-				<property name="globalPrefix" value="${com.brienwheeler.svc.monitor.telemetry.graphiteTelemetryInfoProcessor.globalPrefix}"/>
-			</bean>
-		</property>
-	</bean>
+    <bean class="com.brienwheeler.svc.monitor.telemetry.impl.GraphiteTelemetryInfoProcessor">
+        <property name="hostname" value="${com.brienwheeler.svc.monitor.telemetry.graphiteTelemetryInfoProcessor.hostname}"/>
+        <property name="port" value="${com.brienwheeler.svc.monitor.telemetry.graphiteTelemetryInfoProcessor.port}"/>
+        <property name="filterRecords" value="${com.brienwheeler.svc.monitor.telemetry.graphiteTelemetryInfoProcessor.filterRecords}"/>
+        <property name="globalRedact" value="${com.brienwheeler.svc.monitor.telemetry.graphiteTelemetryInfoProcessor.globalRedact}"/>
+        <property name="globalPrefix" value="${com.brienwheeler.svc.monitor.telemetry.graphiteTelemetryInfoProcessor.globalPrefix}"/>
+    </bean>
 </beans>

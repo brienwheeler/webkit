@@ -27,9 +27,9 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import com.brienwheeler.lib.util.ObjectUtils;
-import com.brienwheeler.svc.monitor.telemetry.IStoppableTelemetryInfoProcessor;
+import com.brienwheeler.svc.monitor.telemetry.IStartableTelemetryInfoProcessor;
 
-public abstract class StartableTelemetryInfoProcessorBase implements IStoppableTelemetryInfoProcessor
+public abstract class StartableTelemetryInfoProcessorBase implements IStartableTelemetryInfoProcessor
 {
 	protected final Log log = LogFactory.getLog(getClass());
 	

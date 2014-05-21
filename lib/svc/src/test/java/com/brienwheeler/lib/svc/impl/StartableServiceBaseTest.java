@@ -469,7 +469,7 @@ public class StartableServiceBaseTest
 			AnnotatedSpringStoppableService service = new AnnotatedSpringStoppableService();
 
 			service.start();
-			service.testMethodWorkNameInterruptedException(0L);
+			service.testMethodGracefulShutdownInterrupted();
 		}
 		finally {
 			Assert.assertTrue(Thread.interrupted());

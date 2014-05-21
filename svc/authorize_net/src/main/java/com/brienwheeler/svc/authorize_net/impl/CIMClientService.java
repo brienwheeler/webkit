@@ -33,6 +33,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
 
+import com.brienwheeler.lib.monitor.work.MonitoredWork;
+import com.brienwheeler.lib.svc.GracefulShutdown;
 import net.authorize.Environment;
 import net.authorize.Merchant;
 import net.authorize.ResponseCode;
@@ -66,7 +68,6 @@ import org.springframework.transaction.annotation.Transactional;
 import com.brienwheeler.lib.db.DbValidationUtils;
 import com.brienwheeler.lib.db.TransactionWrapper;
 import com.brienwheeler.lib.db.domain.DbId;
-import com.brienwheeler.lib.svc.MonitoredWork;
 import com.brienwheeler.lib.util.OperationDisallowedException;
 import com.brienwheeler.svc.authorize_net.AmountTooLargeException;
 import com.brienwheeler.svc.authorize_net.AuthorizeNetException;
@@ -131,6 +132,7 @@ public class CIMClientService extends AuthorizeNetClientBase implements ICIMClie
 	
 	@Override
 	@MonitoredWork
+    @GracefulShutdown
 	// the write logic inside this function is in its own new transaction, so the interceptor can
 	// treat this as a readOnly transaction
 	@Transactional(readOnly=true, propagation=Propagation.SUPPORTS)
@@ -178,6 +180,7 @@ public class CIMClientService extends AuthorizeNetClientBase implements ICIMClie
 	
 	@Override
 	@MonitoredWork
+    @GracefulShutdown
 	@Transactional(readOnly=true, propagation=Propagation.SUPPORTS)
 	public List<PaymentMethod> getPaymentMethods(DbId<User> userId)
 	{
@@ -209,6 +212,7 @@ public class CIMClientService extends AuthorizeNetClientBase implements ICIMClie
 	
 	@Override
 	@MonitoredWork
+    @GracefulShutdown
 	@Transactional//(readOnly=true, propagation=Propagation.SUPPORTS)
 	public String getHostedProfilePageToken(DbId<User> userId, String returnUrl)
 	{
@@ -271,6 +275,7 @@ public class CIMClientService extends AuthorizeNetClientBase implements ICIMClie
 	
 	@Override
 	@MonitoredWork
+    @GracefulShutdown
 	public String authorizePayment(DbId<User> userId, String paymentProfileId, String cardCode, BigDecimal amountToAuthorize)
 	{
 		String customerProfileId = userAttributeService.getAttribute(userId, ATTR_PROFILE_ID);
@@ -320,6 +325,7 @@ public class CIMClientService extends AuthorizeNetClientBase implements ICIMClie
 	
 	@Override
 	@MonitoredWork
+    @GracefulShutdown
 	public String settlePayment(DbId<User> userId, String transactionId, BigDecimal amountToSettle)
 	{
 		String customerProfileId = userAttributeService.getAttribute(userId, ATTR_PROFILE_ID);

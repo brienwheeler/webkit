@@ -25,12 +25,13 @@ package com.brienwheeler.svc.users.impl;
 
 import java.util.List;
 
+import com.brienwheeler.lib.monitor.work.MonitoredWork;
+import com.brienwheeler.lib.svc.GracefulShutdown;
 import org.springframework.beans.factory.annotation.Required;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.brienwheeler.lib.db.DbValidationUtils;
-import com.brienwheeler.lib.svc.MonitoredWork;
 import com.brienwheeler.lib.svc.impl.SpringStoppableServiceBase;
 import com.brienwheeler.lib.util.ArrayUtils;
 import com.brienwheeler.lib.util.ValidationUtils;
@@ -51,6 +52,7 @@ public class UserRoleService extends SpringStoppableServiceBase implements IUser
 	@Override
 	@Transactional(readOnly=true, propagation=Propagation.SUPPORTS)
 	@MonitoredWork
+    @GracefulShutdown
 	public List<String> getUserRoles(User user)
 	{
 		DbValidationUtils.assertPersisted(user);
@@ -61,7 +63,8 @@ public class UserRoleService extends SpringStoppableServiceBase implements IUser
 	@Override
 	@Transactional
 	@MonitoredWork
-	public void setUserRoles(final User user, final String... roles)
+    @GracefulShutdown
+    public void setUserRoles(final User user, final String... roles)
 	{
 		DbValidationUtils.assertPersisted(user);
 		ValidationUtils.assertNotNull(roles, "roles cannot be null");

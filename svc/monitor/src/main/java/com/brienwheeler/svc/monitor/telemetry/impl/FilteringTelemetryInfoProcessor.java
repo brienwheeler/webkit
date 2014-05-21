@@ -23,11 +23,6 @@
  */
 package com.brienwheeler.svc.monitor.telemetry.impl;
 
-import java.util.ArrayList;
-import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.regex.Pattern;
-import java.util.regex.PatternSyntaxException;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Required;
@@ -36,89 +31,19 @@ import com.brienwheeler.lib.monitor.telemetry.TelemetryInfo;
 
 public class FilteringTelemetryInfoProcessor extends TelemetryInfoProcessorChainBase
 {
-	public static final String FILTER_SEPARATOR = ",";
-	public static final String FIELD_SEPARATOR = ":";
+    private final TelemetryNameFilter telemetryNameFilter = new TelemetryNameFilter();
 
 	protected final Log log = LogFactory.getLog(getClass());
-	
-	private static enum Action {
-		INCLUDE,
-		EXCLUDE,
-	}
-
-	private final CopyOnWriteArrayList<FilterRecord> filterRecords = 
-			new CopyOnWriteArrayList<FilterRecord>();
 	
 	@Required
 	public void setFilterRecords(String filterString)
 	{
-		if ((filterString == null) || filterString.trim().isEmpty()) {
-			this.filterRecords.clear();
-			return;
-		}
-		
-		ArrayList<FilterRecord> filterRecords = new ArrayList<FilterRecord>();
-		
-		String[] recordStrings = filterString.split(FILTER_SEPARATOR);
-		for (String recordString : recordStrings) {
-			recordString = recordString.trim();
-			String recordFields[] = recordString.split(FIELD_SEPARATOR);
-			if (recordFields.length != 2) {
-				log.error("invalid filter record string (skipping) :" + recordString);
-				continue;
-			}
-			
-			Action filterAction;
-			try {
-				filterAction = Action.valueOf(recordFields[0].trim());
-			}
-			catch (IllegalArgumentException e) {
-				log.error("invalid filter record action (skipping) :" + recordFields[0].trim());
-				continue;
-			}
-
-			try {
-				filterRecords.add(new FilterRecord(filterAction, recordFields[1].trim()));
-			}
-			catch (PatternSyntaxException e)
-			{
-				log.error("invalid filter record pattern (skipping) :" + recordFields[1].trim());
-				continue;
-			}
-		}
-		
-		this.filterRecords.clear();
-		this.filterRecords.addAll(filterRecords);
+        telemetryNameFilter.setFilterRecords(filterString);
 	}
 	
 	@Override
 	protected boolean onProcess(TelemetryInfo telemetryInfo)
 	{
-		for (FilterRecord filterRecord : filterRecords) {
-			Action action = filterRecord.filterMatches(telemetryInfo);
-			if (action != null) {
-				return action == Action.INCLUDE;
-			}
-		}
-		return true; // default is to pass the info along
-	}
-
-	private class FilterRecord
-	{
-		private final Action action;
-		private final Pattern pattern;
-		
-		FilterRecord(Action action, String regex)
-		{
-			this.action = action;
-			this.pattern = Pattern.compile(regex);
-		}
-		
-		Action filterMatches(TelemetryInfo telemetryInfo)
-		{
-			if (pattern.matcher(telemetryInfo.getName()).matches())
-				return action;
-			return null;
-		}
+        return telemetryNameFilter.process(telemetryInfo.getName());
 	}
 }

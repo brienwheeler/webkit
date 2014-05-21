@@ -36,12 +36,14 @@ import com.brienwheeler.lib.util.ValidationUtils;
 public class GraphiteTelemetryInfoProcessor extends StoppableTelemetryInfoProcessorBase
 {
 	private static final Log log = LogFactory.getLog(GraphiteTelemetryInfoProcessor.class);
-	
+
+    private String globalRedact = null;
 	private String globalPrefix = null;
 	private String hostname = "";
 	private int port = 2003;
 	private final AtomicReference<ReconnectingSocket> reconnectingSocket = new AtomicReference<ReconnectingSocket>();
-	
+    private final TelemetryNameFilter telemetryNameFilter = new TelemetryNameFilter();
+
 	@Required
 	public void setHostname(String hostname)
 	{
@@ -58,15 +60,28 @@ public class GraphiteTelemetryInfoProcessor extends StoppableTelemetryInfoProces
 		this.port = port;
 	}
 
-	public void setGlobalPrefix(String globalPrefix)
+    public void setFilterRecords(String filterString)
+    {
+        telemetryNameFilter.setFilterRecords(filterString);
+    }
+
+    public void setGlobalPrefix(String globalPrefix)
 	{
 		if (globalPrefix == null || globalPrefix.trim().isEmpty())
 			this.globalPrefix = null;
 		else
 			this.globalPrefix = globalPrefix.trim();
 	}
-	
-	@Override
+
+    public void setGlobalRedact(String globalRedact)
+    {
+        if (globalRedact == null || globalRedact.trim().isEmpty())
+            this.globalRedact = null;
+        else
+            this.globalRedact = globalRedact.trim();
+    }
+
+    @Override
 	public void onStart()
 	{
 		if (!hostname.isEmpty()) {
@@ -91,20 +106,33 @@ public class GraphiteTelemetryInfoProcessor extends StoppableTelemetryInfoProces
 		if (socket == null || !socket.isConnected())
 			return;
 
-		String name = (globalPrefix == null) ? "" : (globalPrefix + ".");
-		name += telemetryInfo.getName();
+        String name = telemetryInfo.getName();
+        if (globalRedact != null) {
+            name = name.replace(globalRedact, "");
+        }
+        if (globalPrefix != null) {
+            name = (globalPrefix + ".") + name;
+        }
+
 		long createdAt = telemetryInfo.getCreatedAt() / 1000; // Graphite uses UNIX epoch
 
 		StringBuffer data = new StringBuffer(256);
 		for (String attrName : telemetryInfo.getAttributeNames()) {
+            // we never care about NAME or CREATED_AT
 			if (attrName.equals(TelemetryInfo.ATTR_NAME) || attrName.equals(TelemetryInfo.ATTR_CREATED_AT))
 				continue;
-			
+
+            // allow a chance to filter out based on attrName too (FilteringTelemetryInfoProcessor
+            // can only filter on telemetryInfo.name)
+            String statisticName = name + "." + attrName;
+            if (!telemetryNameFilter.process(statisticName))
+                continue;
+
 			Object attrValue = telemetryInfo.get(attrName);
 			if (attrValue instanceof Double || attrValue instanceof Float || 
 					attrValue instanceof Integer || attrValue instanceof Long) {
 				data.setLength(0);
-				data.append(name).append(".").append(attrName);
+				data.append(statisticName);
 				data.append(" ").append(attrValue.toString());
 				data.append(" ").append(createdAt).append("\n");
 				String dataStr = data.toString();

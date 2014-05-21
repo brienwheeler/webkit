@@ -24,55 +24,32 @@
 package com.brienwheeler.svc.monitor.telemetry.impl;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
+import com.brienwheeler.svc.monitor.telemetry.mocks.MockTelemetryService;
 import org.junit.Assert;
 import org.junit.Test;
 
 import com.brienwheeler.lib.monitor.telemetry.ITelemetryInfoProcessor;
 import com.brienwheeler.lib.monitor.telemetry.TelemetryInfo;
+import org.springframework.test.util.ReflectionTestUtils;
 
-public class TelemetryInfoProcessorMuxTest 
+public class TelemetryServiceBaseTest
 {
 	@Test
-	public void testsetProcessorsNull()
+	public void testSetProcessorsNull()
 	{
-		TelemetryInfoProcessorMux processor = new TelemetryInfoProcessorMux();
-		processor.setProcessors(null);
-		Iterator<ITelemetryInfoProcessor> it = processor.iterator();
-		Assert.assertFalse(it.hasNext());
-	}
-	
-	@Test
-	public void testProcess()
-	{
-		TelemetryInfoProcessorMux processor = new TelemetryInfoProcessorMux();
-
-		TelemetryRecordingProcessor subProcessor1 = new TelemetryRecordingProcessor();
-		TelemetryRecordingProcessor subProcessor2 = new TelemetryRecordingProcessor();
-		
-		List<ITelemetryInfoProcessor> processors = new ArrayList<ITelemetryInfoProcessor>();
-		processors.add(subProcessor1);
-		processors.add(subProcessor2);
-		processor.setProcessors(processors);
-
-		processor.startProcessors();
-		
-		TelemetryInfo info = new TelemetryInfo("InfoName");
-		info.publish();
-		processor.process(info);
-
-		processor.stopProcessors(1000L);
-
-		Assert.assertEquals(1, subProcessor1.getCount());
-		Assert.assertEquals(1, subProcessor1.getCount());
+		MockTelemetryService service = new MockTelemetryService();
+		service.setProcessors(null);
+        List<ITelemetryInfoProcessor> processors = (List<ITelemetryInfoProcessor>)
+                ReflectionTestUtils.getField(service, "processors");
+		Assert.assertFalse(processors.iterator().hasNext());
 	}
 
 	@Test
 	public void testCallProcessors()
 	{
-		TelemetryInfoProcessorMux processor = new TelemetryInfoProcessorMux();
+        MockTelemetryService service = new MockTelemetryService();
 
 		TelemetryRecordingProcessor subProcessor1 = new TelemetryRecordingProcessor();
 		TelemetryRecordingProcessor subProcessor2 = new TelemetryRecordingProcessor();
@@ -80,16 +57,16 @@ public class TelemetryInfoProcessorMuxTest
 		List<ITelemetryInfoProcessor> processors = new ArrayList<ITelemetryInfoProcessor>();
 		processors.add(subProcessor1);
 		processors.add(subProcessor2);
-		processor.setProcessors(processors);
+		service.setProcessors(processors);
 
-		processor.startProcessors();
+		service.start();
 		
 		TelemetryInfo info = new TelemetryInfo("InfoName");
-		processor.callProcessors(info);
+		service.callProcessors(info);
 
-		processor.stopProcessors(1000L);
+		service.stop(1000L);
 
 		Assert.assertEquals(1, subProcessor1.getCount());
-		Assert.assertEquals(1, subProcessor1.getCount());
+		Assert.assertEquals(1, subProcessor2.getCount());
 	}
 }

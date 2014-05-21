@@ -17,41 +17,68 @@
 
     <dependencies>
     
-    <!--
-       - Compile dependencies
-       -->
-    
-    <dependency>
-    	<groupId>com.brienwheeler.lib</groupId>
-    	<artifactId>lib-logging</artifactId>
-    </dependency>
+        <!--
+           - Compile dependencies
+           -->
 
-    <dependency>
-    	<groupId>com.brienwheeler.lib</groupId>
-    	<artifactId>lib-util</artifactId>
-    </dependency>
-    
-    <dependency>
-    	<groupId>org.json</groupId>
-    	<artifactId>json</artifactId>
-    </dependency>
-    
-    <!--
-       - Test dependencies
-       -->
-       
-	<dependency>
-		<groupId>org.springframework</groupId>
-		<artifactId>spring-test</artifactId>
-		<scope>test</scope>
-	</dependency>
+        <dependency>
+            <groupId>com.brienwheeler.lib</groupId>
+            <artifactId>lib-logging</artifactId>
+        </dependency>
 
-	<dependency>
-		<groupId>org.springframework</groupId>
-		<artifactId>spring-core</artifactId>
-		<scope>test</scope>
-	</dependency>
+        <dependency>
+            <groupId>com.brienwheeler.lib</groupId>
+            <artifactId>lib-util</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.aspectj</groupId>
+            <artifactId>aspectjrt</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.json</groupId>
+            <artifactId>json</artifactId>
+        </dependency>
+
+        <!--
+           - Test dependencies
+           -->
+
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-core</artifactId>
+            <scope>test</scope>
+        </dependency>
 
     </dependencies>
-    
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>aspectj-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>compile</goal>
+                            <goal>test-compile</goal>
+                        </goals>
+                        <configuration>
+                            <source>${maven.compiler.source}</source>
+                            <target>${maven.compiler.target}</target>
+                            <forceAjcCompile>true</forceAjcCompile>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+
 </project>

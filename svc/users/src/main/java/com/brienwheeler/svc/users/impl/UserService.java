@@ -23,12 +23,13 @@
  */
 package com.brienwheeler.svc.users.impl;
 
+import com.brienwheeler.lib.monitor.work.MonitoredWork;
+import com.brienwheeler.lib.svc.GracefulShutdown;
 import org.springframework.beans.factory.annotation.Required;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.brienwheeler.lib.db.domain.DbId;
-import com.brienwheeler.lib.svc.MonitoredWork;
 import com.brienwheeler.lib.svc.impl.SpringStoppableServiceBase;
 import com.brienwheeler.lib.util.ValidationUtils;
 import com.brienwheeler.svc.users.DuplicateUserException;
@@ -42,6 +43,7 @@ public class UserService extends SpringStoppableServiceBase implements IUserServ
 	@Override
 	@Transactional
 	@MonitoredWork
+    @GracefulShutdown
 	public User createUser(String username, String hashedPassword, CreateUserCallback... callbacks)
 	{
 		username = ValidationUtils.assertNotEmpty(username, "username cannot be empty");
@@ -64,6 +66,7 @@ public class UserService extends SpringStoppableServiceBase implements IUserServ
 	@Override
 	@Transactional(readOnly=true, propagation=Propagation.SUPPORTS)
 	@MonitoredWork
+    @GracefulShutdown
 	public User findById(DbId<User> userId)
 	{
 		return userDao.findById(userId.getId());
@@ -72,6 +75,7 @@ public class UserService extends SpringStoppableServiceBase implements IUserServ
 	@Override
 	@Transactional(readOnly=true, propagation=Propagation.SUPPORTS)
 	@MonitoredWork
+    @GracefulShutdown
 	public User findByUsername(String username)
 	{
 		username = ValidationUtils.assertNotEmpty(username, "username cannot be empty");
@@ -82,6 +86,7 @@ public class UserService extends SpringStoppableServiceBase implements IUserServ
 	@Override
 	@Transactional
 	@MonitoredWork
+    @GracefulShutdown
 	public void setNewPassword(User user, String newHashedPassword)
 	{
 		ValidationUtils.assertNotNull(user, "user cannot be null");

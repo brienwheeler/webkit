@@ -21,71 +21,61 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package com.brienwheeler.lib.svc.impl;
+package com.brienwheeler.lib.monitor.work.impl;
 
+import com.brienwheeler.lib.monitor.work.IWorkMonitorProvider;
+import com.brienwheeler.lib.monitor.work.MonitoredWork;
+import com.brienwheeler.lib.monitor.work.WorkMonitor;
+import com.brienwheeler.lib.util.ValidationUtils;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Pointcut;
 import org.aspectj.lang.reflect.MethodSignature;
 
-import com.brienwheeler.lib.svc.MonitoredWork;
-import com.brienwheeler.lib.util.ValidationUtils;
-
 @Aspect
 public class MonitoredWorkAspect
 {
-	@Pointcut("execution(@com.brienwheeler.lib.svc.MonitoredWork * *(..))")
+	@Pointcut("execution(@com.brienwheeler.lib.monitor.work.MonitoredWork * *(..))")
 	public void monitoredWorkPointcut() {}
 	
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	@Around("monitoredWorkPointcut()")
-	public Object aroundMonitoredWork(final ProceedingJoinPoint joinPoint)
+	public Object aroundMonitoredWork(final ProceedingJoinPoint joinPoint) throws InterruptedException
 	{
-		ValidationUtils.assertTrue(joinPoint.getTarget() instanceof StartableServiceBase,
-				"@MonitoredWork target must be subclass of StartableServiceBase");
+		ValidationUtils.assertTrue(joinPoint.getTarget() instanceof IWorkMonitorProvider,
+				"@MonitoredWork target must be subclass of IWorkMonitorProvider");
 		ValidationUtils.assertTrue(joinPoint.getSignature() instanceof MethodSignature,
 				"@MonitoredWork signature must be a method");
 		
-		ServiceWork work = new ServiceWork() {
-			@Override
-			public Object doServiceWork() throws InterruptedException
-			{
-				try {
-					return joinPoint.proceed();
-				}
-				catch (InterruptedException e) {
-					throw e;
-				}
-				catch (RuntimeException e) {
-					throw e;
-				}
-				catch (Error e) {
-					throw e;
-				}
-				catch (Throwable e) {
-					throw new RuntimeException(e);
-				}
-			}
-		};
-		
-		final StartableServiceBase service = (StartableServiceBase) joinPoint.getTarget();
+        final WorkMonitor workMonitor = ((IWorkMonitorProvider) joinPoint.getTarget()).getWorkMonitor();
 		MethodSignature signature = (MethodSignature) joinPoint.getSignature();
-		MonitoredWork annotation = signature.getMethod().getAnnotation(MonitoredWork.class); 
+		MonitoredWork annotation = signature.getMethod().getAnnotation(MonitoredWork.class);
 		
 		final String workName = annotation != null && !annotation.value().isEmpty() ? annotation.value() : signature.getName();
-		
-		if ((annotation == null) || !annotation.gracefulShutdown())
-			return service.executeMonitoredWork(workName, work);
-		
-		// default annotation behavior is to also support graceful shutdown
-		final ServiceWork innerWork = work;
-		work = new ServiceWork() {
-			@Override
-			public Object doServiceWork() throws InterruptedException {
-				return service.executeMonitoredWork(workName, innerWork);
-			}
-		};
-		return service.executeWithGracefulShutdown(work);
-	}
+
+        long start = System.currentTimeMillis();
+        try {
+            Object ret = joinPoint.proceed();
+            workMonitor.recordWorkOk(workName, System.currentTimeMillis() - start);
+            return ret;
+        }
+        catch (InterruptedException e) {
+            workMonitor.recordWorkError(workName, System.currentTimeMillis() - start);
+            Thread.currentThread().interrupt();
+            throw e;
+        }
+        catch (RuntimeException e) {
+            workMonitor.recordWorkError(workName, System.currentTimeMillis() - start);
+            throw e;
+        }
+        catch (Error e) {
+            workMonitor.recordWorkError(workName, System.currentTimeMillis() - start);
+            throw e;
+        }
+        catch (Throwable e) {
+            workMonitor.recordWorkError(workName, System.currentTimeMillis() - start);
+            throw new RuntimeException(e);
+        }
+    }
 }

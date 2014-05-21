@@ -144,8 +144,12 @@
 							<aspectLibraries>
 								<aspectLibrary>
 									<groupId>com.brienwheeler.lib</groupId>
-								    <artifactId>lib-svc</artifactId>
+								    <artifactId>lib-monitor</artifactId>
 								</aspectLibrary>
+                                <aspectLibrary>
+                                    <groupId>com.brienwheeler.lib</groupId>
+                                    <artifactId>lib-svc</artifactId>
+                                </aspectLibrary>
 							</aspectLibraries>
 						</configuration>
 					</execution>

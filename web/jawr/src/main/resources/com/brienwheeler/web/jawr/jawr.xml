@@ -16,7 +16,7 @@
 
 	<bean id="com.brienwheeler.web.jawr.jawrParent"
 			abstract="true"
-			class="net.jawr.web.servlet.JawrSpringController">
+			class="${com.brienwheeler.web.jawr.jawrParent.className}">
 
 		<!-- Must match the mapping of the Spring MVC Dispatcher Servlet -->
 		<!-- Empty supports a servlet-mapping of "/" -->

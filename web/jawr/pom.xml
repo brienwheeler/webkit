@@ -29,7 +29,7 @@
 
 		<dependency>
 			<groupId>net.jawr</groupId>
-			<artifactId>jawr</artifactId>
+			<artifactId>jawr-core</artifactId>
 			<scope>runtime</scope>
 		</dependency>
 

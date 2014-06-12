@@ -58,7 +58,7 @@
 		<version.hibernate-validator>4.3.1.Final</version.hibernate-validator>
 		<version.hsqldb>1.8.0.10</version.hsqldb>
 		<version.httpclient>4.3</version.httpclient>
-		<version.jawr>3.3.3</version.jawr>
+		<version.jawr>3.5.2</version.jawr>
 		<version.joda-time>2.3</version.joda-time>
 		<version.joda-time-hibernate>1.3</version.joda-time-hibernate>
 		<version.json>20090211</version.json>
@@ -672,7 +672,7 @@
 			
 			<dependency>
 				<groupId>net.jawr</groupId>
-				<artifactId>jawr</artifactId>
+				<artifactId>jawr-core</artifactId>
 				<version>${version.jawr}</version>
 			</dependency>
 	

@@ -7,9 +7,7 @@ public class JavascriptHTMLBundleLinkRenderer extends net.jawr.web.resource.bund
 {
     protected String otherAttrs;
 
-    public JavascriptHTMLBundleLinkRenderer(ResourceBundlesHandler bundler, boolean useRandomParam,
-            String otherAttrs) {
-        super(bundler, useRandomParam);
+    public void setOtherAttrs(String otherAttrs) {
         this.otherAttrs = otherAttrs;
     }
 

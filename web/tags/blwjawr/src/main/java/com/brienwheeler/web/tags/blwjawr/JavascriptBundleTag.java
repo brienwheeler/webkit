@@ -3,6 +3,7 @@ package com.brienwheeler.web.tags.blwjawr;
 import net.jawr.web.JawrConstant;
 import net.jawr.web.resource.bundle.handler.ResourceBundlesHandler;
 import net.jawr.web.resource.bundle.renderer.BundleRenderer;
+import net.jawr.web.util.StringUtils;
 
 public class JavascriptBundleTag extends net.jawr.web.taglib.JavascriptBundleTag
 {
@@ -13,11 +14,19 @@ public class JavascriptBundleTag extends net.jawr.web.taglib.JavascriptBundleTag
     }
 
     @Override
-    protected BundleRenderer createRenderer() {
-        if(null == pageContext.getServletContext().getAttribute(JawrConstant.JS_CONTEXT_ATTRIBUTE))
-            throw new IllegalStateException("ResourceBundlesHandler not present in servlet context. Initialization of Jawr either failed or never occurred.");
+    protected BundleRenderer createRenderer(ResourceBundlesHandler rsHandler, Boolean useRandomParam) {
+        Boolean asyncFlag = null;
+        if(StringUtils.isNotEmpty(async)){
+            asyncFlag = Boolean.valueOf(async);
+        }
+        Boolean deferFlag = null;
+        if(StringUtils.isNotEmpty(defer)){
+            deferFlag = Boolean.valueOf(defer);
+        }
 
-        ResourceBundlesHandler rsHandler = (ResourceBundlesHandler) pageContext.getServletContext().getAttribute(JawrConstant.JS_CONTEXT_ATTRIBUTE);
-        return new JavascriptHTMLBundleLinkRenderer(rsHandler, useRandomParam, otherAttrs);
+        JavascriptHTMLBundleLinkRenderer renderer = new JavascriptHTMLBundleLinkRenderer();
+        renderer.setOtherAttrs(otherAttrs);
+        renderer.init(rsHandler, useRandomParam, asyncFlag, deferFlag);
+        return renderer;
     }
 }

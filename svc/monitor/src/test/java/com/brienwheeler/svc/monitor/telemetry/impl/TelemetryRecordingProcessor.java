@@ -79,5 +79,12 @@ public class TelemetryRecordingProcessor extends TelemetryInfoProcessorBase
 			
 		}
 	}
+
+    public void initialize() {
+        synchronized (recordedTelemetry) {
+            recordedTelemetry.clear();
+            log.debug("initialize, count set to 0");
+        }
+    }
 	
 }

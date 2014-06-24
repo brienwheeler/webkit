@@ -51,12 +51,13 @@ public class TelemetryPublishServiceTest extends AbstractJUnit4SpringContextTest
 		
 		TelemetryPublishService telemetryPublishService = applicationContext.getBean(TelemetryPublishService.class);
 		recordingProcessor = TelemetryServiceBaseTestUtils.findProcessor(telemetryPublishService, TelemetryRecordingProcessor.class);
+        recordingProcessor.initialize();
 	}
 	
 	@Test
 	public void testStartAtZero()
 	{
-		Assert.assertEquals(recordingProcessor.getCount(), 0);
+		Assert.assertEquals(0, recordingProcessor.getCount());
 	}
 	
 	@Test

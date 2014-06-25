@@ -741,7 +741,13 @@
                 <artifactId>jawr-core</artifactId>
                 <version>${version.jawr}</version>
             </dependency>
-    
+
+            <dependency>
+                <groupId>net.jawr.extensions</groupId>
+                <artifactId>jawr-spring-2.0.x-extension</artifactId>
+                <version>${version.jawr}</version>
+            </dependency>
+
             <dependency>
                 <groupId>org.apache.httpcomponents</groupId>
                 <artifactId>httpclient</artifactId>

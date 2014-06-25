@@ -13,9 +13,30 @@
 
 	<dependencies>
 
-		<!--
-		   - Runtime Dependencies
-		   -->
+        <!--
+           - Compile Dependencies
+           -->
+
+        <dependency>
+            <groupId>net.jawr.extensions</groupId>
+            <artifactId>jawr-spring-2.0.x-extension</artifactId>
+            <exclusions>
+                <!-- we already include Spring and we certainly don't want version 2.0.8 -->
+                <exclusion>
+                    <groupId>org.springframework</groupId>
+                    <artifactId>spring</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-webmvc</artifactId>
+        </dependency>
+
+        <!--
+           - Runtime Dependencies
+           -->
 		
 		<dependency>
 			<groupId>com.brienwheeler.lib</groupId>
@@ -29,12 +50,16 @@
 			<scope>runtime</scope>
 		</dependency>
 
-		<dependency>
-			<groupId>org.springframework</groupId>
-			<artifactId>spring-webmvc</artifactId>
-			<scope>runtime</scope>
-		</dependency>
+        <!--
+           - Provided Dependencies
+           -->
 
-	</dependencies>
+        <dependency>
+            <groupId>javax.servlet</groupId>
+            <artifactId>servlet-api</artifactId>
+            <scope>provided</scope>
+        </dependency>
+
+    </dependencies>
 	
 </project>

@@ -8,9 +8,14 @@ import net.jawr.web.util.StringUtils;
 public class JavascriptBundleTag extends net.jawr.web.taglib.JavascriptBundleTag
 {
     protected String otherAttrs;
+    protected String useQueryParam;
 
     public void setOtherAttrs(String otherAttrs) {
         this.otherAttrs = otherAttrs;
+    }
+
+    public void setUseQueryParam(String useQueryParam) {
+        this.useQueryParam = useQueryParam;
     }
 
     @Override
@@ -23,9 +28,14 @@ public class JavascriptBundleTag extends net.jawr.web.taglib.JavascriptBundleTag
         if(StringUtils.isNotEmpty(defer)){
             deferFlag = Boolean.valueOf(defer);
         }
+        boolean queryParamFlag = false;
+        if(StringUtils.isNotEmpty(useQueryParam)){
+            queryParamFlag = Boolean.valueOf(useQueryParam);
+        }
 
         JavascriptHTMLBundleLinkRenderer renderer = new JavascriptHTMLBundleLinkRenderer();
         renderer.setOtherAttrs(otherAttrs);
+        renderer.setUseQueryParam(queryParamFlag);
         renderer.init(rsHandler, useRandomParam, asyncFlag, deferFlag);
         return renderer;
     }

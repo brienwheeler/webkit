@@ -5,7 +5,7 @@
     <parent>
         <groupId>com.brienwheeler.web.tags</groupId>
         <artifactId>pom-tags</artifactId>
-        <version>1.01-RELEASE</version>
+        <version>1.02-SNAPSHOT</version>
     </parent>
 
     <artifactId>tags-blwjawr</artifactId>

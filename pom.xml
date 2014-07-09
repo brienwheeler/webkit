@@ -70,6 +70,7 @@
                 
         <version.anet-java-sdk>1.4.6</version.anet-java-sdk>
         <version.aspectj>1.6.11</version.aspectj>
+        <version.bouncycastle>1.50</version.bouncycastle>
         <version.commons-codec>1.8</version.commons-codec>
         <version.commons-logging-api>1.1</version.commons-logging-api>
         <version.commons-logging>1.1.2</version.commons-logging>
@@ -794,6 +795,12 @@
                 <groupId>org.aspectj</groupId>
                 <artifactId>aspectjrt</artifactId>
                 <version>${version.aspectj}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.bouncycastle</groupId>
+                <artifactId>bcpkix-jdk15on</artifactId>
+                <version>${version.bouncycastle}</version>
             </dependency>
 
             <dependency>

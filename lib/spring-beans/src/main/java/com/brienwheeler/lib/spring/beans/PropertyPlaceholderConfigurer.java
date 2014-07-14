@@ -61,6 +61,7 @@ public class PropertyPlaceholderConfigurer extends
     private PropertyPlaceholderOrder placeholderOrder;
     private String placeholderPrefix = DEFAULT_PLACEHOLDER_PREFIX;
     private String placeholderSuffix = DEFAULT_PLACEHOLDER_SUFFIX;
+    private boolean quiet = false;
 
     public PropertyPlaceholderConfigurer()
     {
@@ -125,7 +126,8 @@ public class PropertyPlaceholderConfigurer extends
         	Integer previousOrder = contextData.isOrderChanging(getOrder());
         	if (previousOrder != null)
         	{
-                log.info("Processing merged context properties of order " + previousOrder);
+                if (!quiet)
+                    log.info("Processing merged context properties of order " + previousOrder);
                 processProperties(contextData.getProperties(), placeholderPrefix, placeholderSuffix);
                 contextData.clearProperties();
         	}
@@ -144,7 +146,8 @@ public class PropertyPlaceholderConfigurer extends
              */
             if (contextData.incrementPpcCount() == ppcCount)
             {
-                log.info("Processing merged context properties of order " + getOrder());
+                if (!quiet)
+                    log.info("Processing merged context properties of order " + getOrder());
                 processProperties(contextData.getProperties(), placeholderPrefix, placeholderSuffix);
                 contextData.clearProperties();
                 log.info("Resolving context placeholders");
@@ -275,6 +278,7 @@ public class PropertyPlaceholderConfigurer extends
             configurer.setPlaceholderPrefix(placeholderPrefix);
         if (placeholderSuffix != null)
             configurer.setPlaceholderSuffix(placeholderSuffix);
+        configurer.quiet = true;
 
         GenericApplicationContext context = new GenericApplicationContext();
         context.getBeanFactory().registerSingleton("propertyPlaceholderConfigurer", configurer);

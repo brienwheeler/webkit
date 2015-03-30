@@ -5,7 +5,7 @@
     <parent>
         <groupId>com.brienwheeler</groupId>
         <artifactId>pom-root</artifactId>
-        <version>1.04-SNAPSHOT</version>
+        <version>1.05-RELEASE</version>
     </parent>
 
     <groupId>com.brienwheeler.lib</groupId>

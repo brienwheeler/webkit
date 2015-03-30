@@ -10,7 +10,7 @@
 
     <groupId>com.brienwheeler</groupId>
     <artifactId>pom-root</artifactId>
-    <version>1.05-SNAPSHOT</version>
+    <version>1.04-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <name>com.brienwheeler webkit</name>

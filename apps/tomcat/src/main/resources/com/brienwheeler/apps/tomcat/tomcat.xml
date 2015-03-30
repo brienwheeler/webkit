@@ -20,6 +20,7 @@
 		<property name="webAppBase" value="${com.brienwheeler.apps.tomcat.tomcat.webAppBase}"/>
 		<property name="contextRoot" value="${com.brienwheeler.apps.tomcat.tomcat.contextRoot}"/>
 		<property name="port" value="${com.brienwheeler.apps.tomcat.tomcat.port}"/>
+        <property name="sessionTimeout" value="${com.brienwheeler.apps.tomcat.tomcat.sessionTimeout}"/>
         <property name="sslPort" value="${com.brienwheeler.apps.tomcat.sslPort}"/>
         <property name="sslKeyFile"   value="${com.brienwheeler.apps.tomcat.sslKeyFile}"/>
         <property name="sslCertFile" value="${com.brienwheeler.apps.tomcat.sslCertFile}"/>

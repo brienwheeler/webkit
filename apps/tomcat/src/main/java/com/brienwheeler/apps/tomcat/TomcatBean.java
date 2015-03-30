@@ -41,6 +41,9 @@ import java.util.zip.ZipFile;
 
 import com.sun.org.apache.xerces.internal.impl.dv.util.Base64;
 import org.apache.catalina.Context;
+import org.apache.catalina.Lifecycle;
+import org.apache.catalina.LifecycleEvent;
+import org.apache.catalina.LifecycleListener;
 import org.apache.catalina.connector.Connector;
 import org.apache.catalina.core.StandardContext;
 import org.apache.catalina.startup.Tomcat;
@@ -49,7 +52,6 @@ import org.apache.commons.logging.LogFactory;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.openssl.PEMKeyPair;
 import org.bouncycastle.openssl.PEMParser;
-import org.bouncycastle.pkcs.PKCS8EncryptedPrivateKeyInfoBuilder;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Required;
@@ -58,17 +60,16 @@ public class TomcatBean implements InitializingBean, DisposableBean
 {
 	private static final Log log = LogFactory.getLog(TomcatBean.class);
 
-    private static final Pattern KEY_PATTERN = Pattern.compile(
-            "-+BEGIN (.*)PRIVATE KEY-+([^-]*)-+END .*PRIVATE KEY-+");
-    private static final Pattern CERT_PATTERN = Pattern.compile(
-            "-+BEGIN CERTIFICATE-+([^-]*)-+END CERTIFICATE-+");
+  private static final Pattern KEY_PATTERN = Pattern.compile("-+BEGIN (.*)PRIVATE KEY-+([^-]*)-+END .*PRIVATE KEY-+");
+  private static final Pattern CERT_PATTERN = Pattern.compile("-+BEGIN CERTIFICATE-+([^-]*)-+END CERTIFICATE-+");
 
-    private static final String characters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+  private static final String characters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
 
 	private int port;
-    private int sslPort;
-    private File sslKeyFile;
-    private File sslCertFile;
+  private int sslPort;
+  private int sessionTimeout;
+  private File sslKeyFile;
+  private File sslCertFile;
 	private String baseDirectory;
 	private String webAppBase = null;
 	private String contextRoot = null;
@@ -119,6 +120,10 @@ public class TomcatBean implements InitializingBean, DisposableBean
 		this.port = port;
 	}
 
+  public void setSessionTimeout(int sessionTimeout) {
+    this.sessionTimeout = sessionTimeout;
+  }
+
     @Required
     public void setSslPort(int sslPort)
     {
@@ -147,7 +152,7 @@ public class TomcatBean implements InitializingBean, DisposableBean
         }
 
         if (sslPort > 0) {
-            StringBuffer randomPass = new StringBuffer();
+            StringBuilder randomPass = new StringBuilder();
             for (int i=0; i<10; i++)
                 randomPass.append(characters.charAt((int) (characters.length() * Math.random())));
             String keystorePass = randomPass.toString();
@@ -177,7 +182,7 @@ public class TomcatBean implements InitializingBean, DisposableBean
         }
     }
 
-    private void extractWarFile()
+  private void extractWarFile()
 	{
 		if (webAppBase != null && webAppBase.length() > 0) {
 			ProtectionDomain protectionDomain = this.getClass().getProtectionDomain();
@@ -229,6 +234,16 @@ public class TomcatBean implements InitializingBean, DisposableBean
 				Context context = tomcat.addWebapp(launchContextRoot, warEntry.getName());
 				if (context instanceof StandardContext)
 					((StandardContext) context).setUnpackWAR(false);
+
+        // replace standard DefaultWebXmlListener with our subclass that sets the session
+        // timeout after calling its super method (which sets session timeout to 30)
+        for (LifecycleListener listener : context.findLifecycleListeners()) {
+          if (listener instanceof Tomcat.DefaultWebXmlListener) {
+            context.removeLifecycleListener(listener);
+            break;
+          }
+        }
+        context.addLifecycleListener(new MyDefaultWebXmlListener());
 			}
 			catch (Exception e) {
 				throw new RuntimeException("error extracting WAR file", e);
@@ -273,7 +288,7 @@ public class TomcatBean implements InitializingBean, DisposableBean
     }
 
     private String[] readPEMFile(File inFile, Pattern pattern, int groups) throws IOException {
-        StringBuffer buffer = new StringBuffer();
+        StringBuilder buffer = new StringBuilder();
 
         BufferedReader reader = new BufferedReader(new FileReader(inFile));
         for (String line=reader.readLine(); line!=null; line=reader.readLine())
@@ -289,4 +304,16 @@ public class TomcatBean implements InitializingBean, DisposableBean
             ret[i] = matcher.group(i + 1);
         return ret;
     }
+
+  private class MyDefaultWebXmlListener extends Tomcat.DefaultWebXmlListener {
+    @Override
+    public void lifecycleEvent(LifecycleEvent event) {
+      super.lifecycleEvent(event);
+      if (Lifecycle.BEFORE_START_EVENT.equals(event.getType())) {
+        if (event.getLifecycle() instanceof StandardContext && sessionTimeout > 0) {
+          ((StandardContext) event.getLifecycle()).setSessionTimeout(sessionTimeout);
+        }
+      }
+    }
+  }
 }

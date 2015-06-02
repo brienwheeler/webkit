@@ -44,11 +44,50 @@ public abstract class SteppableThread extends Thread
 	private long joinDelay = 10000L;
 	
 	protected abstract void onRun();
-	
-	@Override
+
+  protected SteppableThread()
+  {
+  }
+
+  protected SteppableThread(Runnable target)
+  {
+    super(target);
+  }
+
+  protected SteppableThread(ThreadGroup group, Runnable target)
+  {
+    super(group, target);
+  }
+
+  protected SteppableThread(String name)
+  {
+    super(name);
+  }
+
+  protected SteppableThread(ThreadGroup group, String name)
+  {
+    super(group, name);
+  }
+
+  protected SteppableThread(Runnable target, String name)
+  {
+    super(target, name);
+  }
+
+  protected SteppableThread(ThreadGroup group, Runnable target, String name)
+  {
+    super(group, target, name);
+  }
+
+  protected SteppableThread(ThreadGroup group, Runnable target, String name, long stackSize)
+  {
+    super(group, target, name, stackSize);
+  }
+
+  @Override
 	public final void run()
 	{
-		log.info("starting");
+		log.info("starting " + getName());
 		try {
 			onRun();
 			wasInterrupted = Thread.currentThread().isInterrupted();
@@ -61,7 +100,7 @@ public abstract class SteppableThread extends Thread
 		finally {
 			// wait to be released for thread exit
 			SteppableThread.waitForNextStep();
-			log.info("exiting");
+			log.info("exiting " + getName());
 		}
 	}
 
@@ -178,14 +217,14 @@ public abstract class SteppableThread extends Thread
 						firstWait = false;
 					}
 					else {
-						verbose("signalling done");
+						verbose("signalling done " + getName());
 						if (stepDone.await() == 0)
 							stepDone.reset();
 					}
 					done = true;
 				}
 				catch (InterruptedException e) {
-					verbose("interrupted");
+					verbose("interrupted " + getName());
 					interrupted = true;
 					stepDone.reset();
 					signalInterruptProcessed();
@@ -198,13 +237,13 @@ public abstract class SteppableThread extends Thread
 			done = false;
 			while (!done) {
 				try {
-					verbose("waiting for release");
+					verbose("waiting for release " + getName());
 					if (stepStart.await() == 0)
 						stepStart.reset();
 					done = true;
 				}
 				catch (InterruptedException e) {
-					verbose("interrupted");
+					verbose("interrupted " + getName());
 					interrupted = true;
 					stepStart.reset();
 					signalInterruptProcessed();

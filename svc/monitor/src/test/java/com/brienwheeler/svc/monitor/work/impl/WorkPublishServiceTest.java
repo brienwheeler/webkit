@@ -54,7 +54,10 @@ public class WorkPublishServiceTest extends AbstractJUnit4SpringContextTests
 	private static long NAME_ERR_3 = 70L;
 	private static long NONAME_OK_1 = 80L;
 	private static long NONAME_OK_2 = 90L;
-	
+
+	private static long measureSlop = 5l;
+	private static float averageSlop = 5f;
+
 	// instead of @BeforeClass this is called for lazy initialization from a @Before so that
 	// applicationContext is created and started
 	private static void initialize(ApplicationContext applicationContext)
@@ -132,32 +135,32 @@ public class WorkPublishServiceTest extends AbstractJUnit4SpringContextTests
 		// check successful named work
 		Assert.assertEquals(4, recordedTelemetry[0].get(WorkRecordCollectionTelemetryPublisher.OK_COUNT));
 		Assert.assertTrue(Math.abs(NAME_OK_1 + NAME_OK_2 + NAME_OK_3 + NAME_OK_4 -
-				(Long) recordedTelemetry[0].get(WorkRecordCollectionTelemetryPublisher.OK_DURATION)) < 10);
+				(Long) recordedTelemetry[0].get(WorkRecordCollectionTelemetryPublisher.OK_DURATION)) < measureSlop * 4l);
 		Assert.assertEquals(((float) NAME_OK_1 + NAME_OK_2 + NAME_OK_3 + NAME_OK_4) / 4,
 				((Float) recordedTelemetry[0].get(WorkRecordCollectionTelemetryPublisher.OK_AVG_DURATION)).floatValue(),
-				2.0f);
+				averageSlop);
 
 		// check unsuccessful named work
 		Assert.assertEquals(3, recordedTelemetry[0].get(WorkRecordCollectionTelemetryPublisher.ERROR_COUNT));
 		Assert.assertTrue(Math.abs(NAME_ERR_1 + NAME_ERR_2 + NAME_ERR_3 -
-				(Long) recordedTelemetry[0].get(WorkRecordCollectionTelemetryPublisher.ERROR_DURATION)) < 10);
+				(Long) recordedTelemetry[0].get(WorkRecordCollectionTelemetryPublisher.ERROR_DURATION)) < measureSlop * 3l);
 		Assert.assertEquals(((float) NAME_ERR_1 + NAME_ERR_2 + NAME_ERR_3) / 3,
 				((Float) recordedTelemetry[0].get(WorkRecordCollectionTelemetryPublisher.ERROR_AVG_DURATION)).floatValue(),
-				2.0f);
+				averageSlop);
 
 		// check successful unnamed work
 		Assert.assertEquals(2, recordedTelemetry[1].get(WorkRecordCollectionTelemetryPublisher.OK_COUNT));
 		Assert.assertTrue(Math.abs(NONAME_OK_1 + NONAME_OK_2 -
-				(Long) recordedTelemetry[1].get(WorkRecordCollectionTelemetryPublisher.OK_DURATION)) < 10);
+				(Long) recordedTelemetry[1].get(WorkRecordCollectionTelemetryPublisher.OK_DURATION)) < measureSlop * 2l);
 		Assert.assertEquals(((float) NONAME_OK_1 + NONAME_OK_2) / 2,
 				((Float) recordedTelemetry[1].get(WorkRecordCollectionTelemetryPublisher.OK_AVG_DURATION)).floatValue(),
-				2.0f);
+				averageSlop);
 
 		// check unsuccessful unnamed work
 		Assert.assertEquals(0, recordedTelemetry[1].get(WorkRecordCollectionTelemetryPublisher.ERROR_COUNT));
 		Assert.assertTrue(Math.abs((Long) recordedTelemetry[1].get(WorkRecordCollectionTelemetryPublisher.ERROR_DURATION)) < 1);
 		Assert.assertEquals(0f,
 				((Float) recordedTelemetry[1].get(WorkRecordCollectionTelemetryPublisher.ERROR_AVG_DURATION)).floatValue(),
-				2.0f);
+				averageSlop);
 	}
 }

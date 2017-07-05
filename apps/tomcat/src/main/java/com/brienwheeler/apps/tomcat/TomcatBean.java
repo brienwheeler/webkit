@@ -73,6 +73,7 @@ public class TomcatBean implements InitializingBean, DisposableBean
 	private String baseDirectory;
 	private String webAppBase = null;
 	private String contextRoot = null;
+	private String sslProperties = null;
 	private final Tomcat tomcat;
 	
 	public TomcatBean()
@@ -124,7 +125,12 @@ public class TomcatBean implements InitializingBean, DisposableBean
     this.sessionTimeout = sessionTimeout;
   }
 
-    @Required
+  @Required
+  public void setSslProperties(String sslProperties) {
+    this.sslProperties = sslProperties;
+  }
+
+  @Required
     public void setSslPort(int sslPort)
     {
         this.sslPort = sslPort;
@@ -176,8 +182,23 @@ public class TomcatBean implements InitializingBean, DisposableBean
             sslConnector.setAttribute("keystoreFile", keyStoreFile.getAbsolutePath());
             sslConnector.setAttribute("keystorePass", keystorePass);
             sslConnector.setAttribute("clientAuth", "false");
-            sslConnector.setAttribute("sslProtocol", "TLS");
             sslConnector.setAttribute("SSLEnabled", true);
+
+            if (sslProperties != null && sslProperties.trim().length() > 0) {
+                String sslPropDefs[] = sslProperties.trim().split(";");
+                for (String sslPropDef : sslPropDefs) {
+                    String parts[] = sslPropDef.split("=");
+                    if ((parts.length != 2) || (parts[0].trim().length() == 0) || (parts[1].trim().length() == 0)) {
+                        log.warn("invalid SSL property definition -- ignoring: " + sslPropDef);
+                        continue;
+                    }
+                    String name = parts[0].trim();
+                    String value = parts[1].trim();
+                    log.info("setting Tomcat SSL connector property: " + name + "=" + value);
+                    sslConnector.setAttribute(name, value);
+                }
+            }
+            sslConnector.setAttribute("sslProtocol", "TLS");
             tomcat.getService().addConnector(sslConnector);
         }
     }

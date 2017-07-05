@@ -24,6 +24,7 @@
         <property name="sslPort" value="${com.brienwheeler.apps.tomcat.sslPort}"/>
         <property name="sslKeyFile"   value="${com.brienwheeler.apps.tomcat.sslKeyFile}"/>
         <property name="sslCertFile" value="${com.brienwheeler.apps.tomcat.sslCertFile}"/>
+				<property name="sslProperties" value="${com.brienwheeler.apps.tomcat.sslProperties}"/>
 	</bean>
 
 </beans>

@@ -26,14 +26,15 @@ package com.brienwheeler.apps.tomcat;
 import java.io.*;
 import java.net.URL;
 import java.security.*;
-import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.security.interfaces.RSAPrivateKey;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
+import java.util.ArrayList;
 import java.util.Enumeration;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
@@ -60,6 +61,7 @@ public class TomcatBean implements InitializingBean, DisposableBean
 {
 	private static final Log log = LogFactory.getLog(TomcatBean.class);
 
+  private static final Pattern ITEM_END_PATTERN = Pattern.compile("-+END (.*PRIVATE KEY|CERTIFICATE)-+");
   private static final Pattern KEY_PATTERN = Pattern.compile("-+BEGIN (.*)PRIVATE KEY-+([^-]*)-+END .*PRIVATE KEY-+");
   private static final Pattern CERT_PATTERN = Pattern.compile("-+BEGIN CERTIFICATE-+([^-]*)-+END CERTIFICATE-+");
 
@@ -165,13 +167,15 @@ public class TomcatBean implements InitializingBean, DisposableBean
 
             RSAPrivateKey privateKey = readKeyFile();
             log.info("successfully read SSL private key from " + sslKeyFile.getAbsolutePath());
-            X509Certificate certificate = readCertFile();
-            log.info("successfully read SSL certificate from " + sslCertFile.getAbsolutePath());
+            List<X509Certificate> certificates = readCertFile();
+            log.info("successfully read SSL certificate(s) from " + sslCertFile.getAbsolutePath());
 
             KeyStore keyStore = KeyStore.getInstance("JKS");
             keyStore.load(null);
-            keyStore.setCertificateEntry("cert-alias", certificate);
-            keyStore.setKeyEntry("key-alias", privateKey, keystorePass.toCharArray(), new Certificate[]{certificate});
+            for (int i=0; i<certificates.size(); i++) {
+                keyStore.setCertificateEntry("cert-alias-" + Integer.toString(i), certificates.get(i));
+            }
+            keyStore.setKeyEntry("key-alias", privateKey, keystorePass.toCharArray(), certificates.toArray(new X509Certificate[certificates.size()]));
             File keyStoreFile = new File("tcks");
             keyStore.store(new FileOutputStream(keyStoreFile), keystorePass.toCharArray());
 
@@ -273,16 +277,23 @@ public class TomcatBean implements InitializingBean, DisposableBean
 	}
 
     private RSAPrivateKey readKeyFile() throws IOException, NoSuchAlgorithmException, InvalidKeySpecException {
-        String parse[] = readPEMFile(sslKeyFile, KEY_PATTERN, 2);
-        if (parse == null)
+	      List<String> items = readPEMFileIntoItems(sslKeyFile);
+	      if (items.size() != 1)
             throw new IllegalArgumentException("invalid key file contents");
 
-        if (parse[0].length() == 0) { // BEGIN PRIVATE KEY
+	      Matcher matcher = KEY_PATTERN.matcher(items.get(0));
+	      if (!matcher.matches())
+            throw new IllegalArgumentException("invalid key file contents");
+
+	      String keyType = matcher.group(1);
+	      String keyData = matcher.group(2);
+
+        if (keyType.length() == 0) { // BEGIN PRIVATE KEY
             KeyFactory keyFactory = KeyFactory.getInstance("RSA");
-            return (RSAPrivateKey) keyFactory.generatePrivate(new PKCS8EncodedKeySpec(Base64.decode(parse[1])));
+            return (RSAPrivateKey) keyFactory.generatePrivate(new PKCS8EncodedKeySpec(Base64.decode(keyData)));
         }
 
-        if (parse[0].contains("RSA")) { // BEGIN RSA PRIVATE KEY
+        if (keyType.contains("RSA")) { // BEGIN RSA PRIVATE KEY
             Security.addProvider(new BouncyCastleProvider());
 
             PEMParser pemParser = new PEMParser(new FileReader(sslKeyFile));
@@ -300,30 +311,38 @@ public class TomcatBean implements InitializingBean, DisposableBean
         throw new IllegalArgumentException("invalid key file contents");
     }
 
-    private X509Certificate readCertFile() throws IOException, CertificateException {
-        String parse[] = readPEMFile(sslCertFile, CERT_PATTERN, 1);
-        if (parse == null)
+    private List<X509Certificate> readCertFile() throws IOException, CertificateException {
+        List<String> items = readPEMFileIntoItems(sslCertFile);
+        if (items.size() < 1)
             throw new IllegalArgumentException("invalid certificate file contents");
-        CertificateFactory certificateFactory = CertificateFactory.getInstance("X.509");
-        return (X509Certificate) certificateFactory.generateCertificate(new ByteArrayInputStream(Base64.decode(parse[0])));
+
+      CertificateFactory certificateFactory = CertificateFactory.getInstance("X.509");
+        ArrayList<X509Certificate> certificates = new ArrayList<X509Certificate>();
+        for (int i=0; i<items.size(); i++) {
+          Matcher matcher = CERT_PATTERN.matcher(items.get(i));
+          if (!matcher.matches())
+              throw new IllegalArgumentException("invalid certificate file contents");
+          certificates.add((X509Certificate) certificateFactory.generateCertificate(new ByteArrayInputStream(Base64.decode(matcher.group(1)))));
+        }
+        return certificates;
     }
 
-    private String[] readPEMFile(File inFile, Pattern pattern, int groups) throws IOException {
-        StringBuilder buffer = new StringBuilder();
+    private List<String> readPEMFileIntoItems(File inFile) throws IOException {
+      ArrayList<String> items = new ArrayList<String>();
+      StringBuilder buffer = new StringBuilder();
+      Matcher endItemMatcher = ITEM_END_PATTERN.matcher("");
 
-        BufferedReader reader = new BufferedReader(new FileReader(inFile));
-        for (String line=reader.readLine(); line!=null; line=reader.readLine())
-            buffer.append(line);
-        reader.close();
+      BufferedReader reader = new BufferedReader(new FileReader(inFile));
+      for (String line=reader.readLine(); line!=null; line=reader.readLine()) {
+        buffer.append(line);
+        if (endItemMatcher.reset(line).matches()) {
+          items.add(buffer.toString());
+          buffer = new StringBuilder();
+        }
+      }
+      reader.close();
 
-        Matcher matcher = pattern.matcher(buffer.toString());
-        if (!matcher.matches())
-            return null;
-
-        String[] ret = new String[groups];
-        for (int i=0; i<groups; i++)
-            ret[i] = matcher.group(i + 1);
-        return ret;
+      return items;
     }
 
   private class MyDefaultWebXmlListener extends Tomcat.DefaultWebXmlListener {

@@ -10,7 +10,7 @@
 
     <groupId>com.brienwheeler</groupId>
     <artifactId>pom-root</artifactId>
-    <version>1.08-SNAPSHOT</version>
+    <version>1.08</version>
     <packaging>pom</packaging>
 
     <name>com.brienwheeler webkit</name>
@@ -34,7 +34,7 @@
         <connection>scm:git:ssh://github.com/brienwheeler/webkit.git</connection>
         <developerConnection>scm:git:ssh://git@github.com/brienwheeler/webkit.git</developerConnection>
         <url>https://github.com/brienwheeler/webkit</url>
-      <tag>HEAD</tag>
+      <tag>releases/1.08</tag>
   </scm>
 
     <modules>

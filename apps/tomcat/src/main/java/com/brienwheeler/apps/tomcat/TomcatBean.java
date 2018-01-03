@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2013 Brien L. Wheeler (brienwheeler@yahoo.com)
+ * Copyright (c) 2013-2018 Brien L. Wheeler (brienwheeler@yahoo.com)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -40,6 +40,13 @@ import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
+import javax.servlet.FilterChain;
+import javax.servlet.FilterConfig;
+import javax.servlet.ServletException;
+import javax.servlet.ServletRequest;
+import javax.servlet.ServletResponse;
+import javax.servlet.http.HttpServletResponse;
+
 import com.sun.org.apache.xerces.internal.impl.dv.util.Base64;
 import org.apache.catalina.Context;
 import org.apache.catalina.Lifecycle;
@@ -47,6 +54,10 @@ import org.apache.catalina.LifecycleEvent;
 import org.apache.catalina.LifecycleListener;
 import org.apache.catalina.connector.Connector;
 import org.apache.catalina.core.StandardContext;
+import org.apache.catalina.deploy.FilterDef;
+import org.apache.catalina.deploy.FilterMap;
+import org.apache.catalina.filters.FilterBase;
+import org.apache.catalina.filters.HttpHeaderSecurityFilter;
 import org.apache.catalina.startup.Tomcat;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -56,6 +67,7 @@ import org.bouncycastle.openssl.PEMParser;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Required;
+import org.springframework.util.StringUtils;
 
 public class TomcatBean implements InitializingBean, DisposableBean
 {
@@ -76,6 +88,13 @@ public class TomcatBean implements InitializingBean, DisposableBean
 	private String webAppBase = null;
 	private String contextRoot = null;
 	private String sslProperties = null;
+	private boolean addResponseSecurityHeaders = false;
+	private String antiClickJackingOption = null;
+  private String antiClickJackingUri = null;
+	private boolean hstsIncludeSubdomains = false;
+	private String additionalHeaders = null;
+	private int hstsMaxAgeSeconds = 0;
+
 	private final Tomcat tomcat;
 	
 	public TomcatBean()
@@ -88,7 +107,7 @@ public class TomcatBean implements InitializingBean, DisposableBean
 	{
 		tomcat.setBaseDir(baseDirectory);
 		tomcat.getHost().setAppBase(baseDirectory);
-        configureNetwork();
+    configureNetwork();
 		extractWarFile();
 		tomcat.start();
 	}
@@ -133,24 +152,54 @@ public class TomcatBean implements InitializingBean, DisposableBean
   }
 
   @Required
-    public void setSslPort(int sslPort)
+  public void setSslPort(int sslPort)
     {
         this.sslPort = sslPort;
     }
 
-    @Required
-    public void setSslKeyFile(File sslKeyFile)
+  @Required
+  public void setSslKeyFile(File sslKeyFile)
     {
         this.sslKeyFile = sslKeyFile;
     }
 
-    @Required
-    public void setSslCertFile(File sslCertFile)
+  @Required
+  public void setSslCertFile(File sslCertFile)
     {
         this.sslCertFile = sslCertFile;
     }
 
-    private void configureNetwork() throws Exception
+  @Required
+  public void setAddResponseSecurityHeaders(boolean addResponseSecurityHeaders) {
+    this.addResponseSecurityHeaders = addResponseSecurityHeaders;
+  }
+
+  @Required
+  public void setAntiClickJackingOption(String antiClickJackingOption) {
+    this.antiClickJackingOption = antiClickJackingOption;
+  }
+
+  @Required
+  public void setAntiClickJackingUri(String antiClickJackingUri) {
+    this.antiClickJackingUri = antiClickJackingUri;
+  }
+
+  @Required
+  public void setHstsIncludeSubdomains(boolean hstsIncludeSubdomains) {
+    this.hstsIncludeSubdomains = hstsIncludeSubdomains;
+  }
+
+  @Required
+  public void setHstsMaxAgeSeconds(int hstsMaxAgeSeconds) {
+    this.hstsMaxAgeSeconds = hstsMaxAgeSeconds;
+  }
+
+  @Required
+  public void setAdditionalHeaders(String additionalHeaders) {
+    this.additionalHeaders = additionalHeaders;
+  }
+
+  private void configureNetwork() throws Exception
     {
         if (port > 0) {
             tomcat.setPort(port);
@@ -269,12 +318,69 @@ public class TomcatBean implements InitializingBean, DisposableBean
           }
         }
         context.addLifecycleListener(new MyDefaultWebXmlListener());
+
+        if (addResponseSecurityHeaders) {
+          configureResponseSecurityHeaders(context);
+        }
+
+        if (!StringUtils.isEmpty(additionalHeaders)) {
+          configureAdditionalHeaders(context);
+        }
 			}
 			catch (Exception e) {
 				throw new RuntimeException("error extracting WAR file", e);
 			}
 		}
 	}
+
+  private void configureResponseSecurityHeaders(Context context) {
+	  FilterDef httpHeaderFilter = new FilterDef();
+	  httpHeaderFilter.setFilterName(HttpHeaderSecurityFilter.class.getSimpleName());
+	  httpHeaderFilter.setFilterClass(HttpHeaderSecurityFilter.class.getName());
+	  httpHeaderFilter.setAsyncSupported("true");
+
+	  // X-Frame-Options
+    httpHeaderFilter.addInitParameter("antiClickJackingEnabled", "true");
+    httpHeaderFilter.addInitParameter("antiClickJackingOption", antiClickJackingOption);
+    if (!StringUtils.isEmpty(antiClickJackingUri))
+      httpHeaderFilter.addInitParameter("antiClickJackingUri", antiClickJackingUri);
+
+    // X-XSS-Protection
+    httpHeaderFilter.addInitParameter("xssProtectionEnabled", "true");
+
+    // X-Content-Type-Options
+    httpHeaderFilter.addInitParameter("blockContentTypeSniffingEnabled", "true");
+
+    // HTTP Strict-Transport-Security
+    httpHeaderFilter.addInitParameter("hstsEnabled", "true");
+    httpHeaderFilter.addInitParameter("hstsIncludeSubDomains", Boolean.toString(hstsIncludeSubdomains));
+    httpHeaderFilter.addInitParameter("hstsMaxAgeSeconds", Integer.toString(hstsMaxAgeSeconds));
+
+	  context.addFilterDef(httpHeaderFilter);
+
+	  FilterMap httpHeaderFilterMap = new FilterMap();
+	  httpHeaderFilterMap.setFilterName(HttpHeaderSecurityFilter.class.getSimpleName());
+	  httpHeaderFilterMap.addURLPattern("/*");
+
+	  context.addFilterMap(httpHeaderFilterMap);
+  }
+
+  private void configureAdditionalHeaders(Context context) {
+    FilterDef additionalHeadersFilter = new FilterDef();
+    additionalHeadersFilter.setFilterName(AdditionalHeadersFilter.class.getSimpleName());
+    additionalHeadersFilter.setFilterClass(AdditionalHeadersFilter.class.getName());
+    additionalHeadersFilter.setAsyncSupported("true");
+
+    additionalHeadersFilter.addInitParameter("additionalHeaders", additionalHeaders);
+
+    context.addFilterDef(additionalHeadersFilter);
+
+    FilterMap additionalHeadersFilterMap = new FilterMap();
+    additionalHeadersFilterMap.setFilterName(AdditionalHeadersFilter.class.getSimpleName());
+    additionalHeadersFilterMap.addURLPattern("/*");
+
+    context.addFilterMap(additionalHeadersFilterMap);
+  }
 
     private RSAPrivateKey readKeyFile() throws IOException, NoSuchAlgorithmException, InvalidKeySpecException {
 	      List<String> items = readPEMFileIntoItems(sslKeyFile);
@@ -356,4 +462,5 @@ public class TomcatBean implements InitializingBean, DisposableBean
       }
     }
   }
+
 }

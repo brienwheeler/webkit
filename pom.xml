@@ -97,7 +97,7 @@
         <version.slf4j-log4j12>1.7.5</version.slf4j-log4j12>
         <version.spring-core>3.2.9.RELEASE</version.spring-core>
         <version.spring-security>3.2.4.RELEASE</version.spring-security>
-        <version.tomcat>7.0.39</version.tomcat>
+        <version.tomcat>7.0.82</version.tomcat>
         <version.validation-api>1.1.0.Final</version.validation-api>
         <version.yui>3.8.0</version.yui>
     </properties>

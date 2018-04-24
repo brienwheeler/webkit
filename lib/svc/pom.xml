@@ -79,9 +79,6 @@
 							<goal>test-compile</goal>
 						</goals>
 						<configuration>
-							<source>${maven.compiler.source}</source>
-							<target>${maven.compiler.target}</target>
-							<forceAjcCompile>true</forceAjcCompile>
 							<!--
 							   - m2e has a problem in that it doesn't seem to add the <classifier>tests</classifer>
 							   - version of the lib-monitor JAR file to the AspectJ classpath, so we will exclude

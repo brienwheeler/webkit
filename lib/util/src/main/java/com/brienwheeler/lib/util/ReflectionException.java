@@ -43,6 +43,8 @@ public class ReflectionException extends RuntimeException
 
     /**
      * Construct a {@link ReflectionException} with a message detail
+     *
+     * @param message the exception message
      */
     public ReflectionException(String message)
     {
@@ -52,6 +54,9 @@ public class ReflectionException extends RuntimeException
     /**
      * Construct a {@link ReflectionException} with a message detail and an
      * underlying cause
+     *
+     * @param message the exception message
+     * @param cause the underlying cause
      */
     public ReflectionException(String message, Throwable cause)
     {
@@ -60,6 +65,8 @@ public class ReflectionException extends RuntimeException
 
     /**
      * Construct a {@link ReflectionException} with an underlying cause
+     *
+     * @param cause the underlying cause
      */
     public ReflectionException(Throwable cause)
     {

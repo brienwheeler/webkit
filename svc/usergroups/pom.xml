@@ -93,9 +93,6 @@
 							<!-- <goal>test-compile</goal> -->
 						</goals>
 						<configuration>
-							<source>${maven.compiler.source}</source>
-							<target>${maven.compiler.target}</target>
-							<forceAjcCompile>true</forceAjcCompile>
 							<aspectLibraries>
                                 <aspectLibrary>
                                     <groupId>com.brienwheeler.lib</groupId>

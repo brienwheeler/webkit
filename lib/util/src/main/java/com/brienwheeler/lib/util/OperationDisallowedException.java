@@ -43,6 +43,8 @@ public class OperationDisallowedException extends RuntimeException
 
     /**
      * Construct a {@link OperationDisallowedException} with a message detail
+     *
+     * @param message the exception message
      */
     public OperationDisallowedException(String message)
     {

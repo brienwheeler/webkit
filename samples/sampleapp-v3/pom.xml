@@ -25,13 +25,13 @@
     </modules>
 
 	<properties>
-		<maven.compiler.source>1.6</maven.compiler.source>
-		<maven.compiler.target>1.6</maven.compiler.target>
+		<maven.compiler.source>1.7</maven.compiler.source>
+		<maven.compiler.target>1.7</maven.compiler.target>
 		
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		
-		<version.plugin.aspectj-maven>1.4</version.plugin.aspectj-maven>
-		<version.plugin.cobertura-maven>2.5.1</version.plugin.cobertura-maven>
+
+		<version.plugin.aspectj-maven>1.11</version.plugin.aspectj-maven>
+		<version.plugin.cobertura-maven>2.7</version.plugin.cobertura-maven>
 		<version.plugin.javascript-maven>2.0.0-alpha-1</version.plugin.javascript-maven>
 		<version.plugin.jslint-maven>1.0.1</version.plugin.jslint-maven>
 		<version.plugin.tomcat-maven>1.1</version.plugin.tomcat-maven>
@@ -43,7 +43,7 @@
 		<version.plugin.maven-surefire>2.10</version.plugin.maven-surefire>
 		<version.plugin.maven-war>2.1.1</version.plugin.maven-war>
 
-		<version.brienwheeler>1.0</version.brienwheeler>
+		<version.brienwheeler>1.10-SNAPSHOT</version.brienwheeler>
 		<version.junit>4.8.1</version.junit>
 		<version.servlet-api>2.5</version.servlet-api>
 	</properties>

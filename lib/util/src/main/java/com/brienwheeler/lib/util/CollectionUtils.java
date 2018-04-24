@@ -41,7 +41,8 @@ public class CollectionUtils
 	/**
 	 * Enforce that a Collection contains no more than one element and return that element
 	 * if it exists.
-	 * 
+	 *
+	 * @param <T> collection element type
 	 * @param collection the Collection to examine
 	 * @return null if the Collection is null or empty, the Collection's single object if
 	 * 		its size is one, or throw if its size is greater than one.

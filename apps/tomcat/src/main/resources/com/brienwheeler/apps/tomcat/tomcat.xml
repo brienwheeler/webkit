@@ -21,9 +21,9 @@
 		<property name="contextRoot" value="${com.brienwheeler.apps.tomcat.tomcat.contextRoot}"/>
 		<property name="port" value="${com.brienwheeler.apps.tomcat.tomcat.port}"/>
 		<property name="sessionTimeout" value="${com.brienwheeler.apps.tomcat.tomcat.sessionTimeout}"/>
-    <property name="sslPort" value="${com.brienwheeler.apps.tomcat.sslPort}"/>
-    <property name="sslKeyFile"   value="${com.brienwheeler.apps.tomcat.sslKeyFile}"/>
-    <property name="sslCertFile" value="${com.brienwheeler.apps.tomcat.sslCertFile}"/>
+		<property name="sslPort" value="${com.brienwheeler.apps.tomcat.sslPort}"/>
+		<property name="sslKeyFile"   value="${com.brienwheeler.apps.tomcat.sslKeyFile}"/>
+		<property name="sslCertFile" value="${com.brienwheeler.apps.tomcat.sslCertFile}"/>
 		<property name="sslProperties" value="${com.brienwheeler.apps.tomcat.sslProperties}"/>
 		<property name="addResponseSecurityHeaders" value="${com.brienwheeler.apps.tomcat.security.addResponseSecurityHeaders}"/>
 		<property name="antiClickJackingOption" value="${com.brienwheeler.apps.tomcat.security.antiClickJackingOption}"/>
@@ -31,6 +31,7 @@
 		<property name="hstsIncludeSubdomains" value="${com.brienwheeler.apps.tomcat.security.hstsIncludeSubdomains}"/>
 		<property name="hstsMaxAgeSeconds" value="${com.brienwheeler.apps.tomcat.security.hstsMaxAgeSeconds}"/>
 		<property name="additionalHeaders" value="${com.brienwheeler.apps.tomcat.security.additionalHeaders}"/>
+		<property name="showServerInfoOnError" value="${com.brienwheeler.apps.tomcat.security.showServerInfoOnError}"/>
 	</bean>
 
 </beans>

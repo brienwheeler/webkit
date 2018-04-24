@@ -65,7 +65,7 @@ public class ValidationUtils
     /**
      * Assert that a given condition is true.
      * 
-     * @param object the condition to test
+     * @param condition the condition to test
      * @param message error detail for the {@link ValidationException}
      * @throws ValidationException if condition == false
      */
@@ -78,7 +78,7 @@ public class ValidationUtils
     /**
      * Assert that a given condition is false.
      * 
-     * @param object the condition to test
+     * @param condition the condition to test
      * @param message error detail for the {@link ValidationException}
      * @throws ValidationException if condition == true
      */

@@ -28,12 +28,6 @@
 		</dependency>
 
 		<dependency>
-			<groupId>org.apache.tomcat.embed</groupId>
-			<artifactId>tomcat-embed-logging-log4j</artifactId>
-			<scope>compile</scope>
-		</dependency>
-
-		<dependency>
 				<groupId>org.bouncycastle</groupId>
 				<artifactId>bcpkix-jdk15on</artifactId>
 		</dependency>

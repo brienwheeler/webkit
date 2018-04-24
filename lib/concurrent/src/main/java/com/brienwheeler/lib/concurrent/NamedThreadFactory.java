@@ -37,14 +37,13 @@ import com.brienwheeler.lib.util.ValidationUtils;
  * A {@link ThreadFactory} that creates threads belonging to a single parent {@link ThreadGroup}
  * and names each thread <i>name-count</i> where <i>name</i> is the value passed to setName() and
  * <i>count</i> is an increasing index for this NamedThreadFactory.
- * <br/>
- * <br/>
- * setName() must be called before newThread() or getThreadGroup() or an {@link IllegalStateException} will be thrown
- * <br/>
- * setName() cannot be called more than once  or an {@link IllegalStateException} will be thrown
- * <br/>
- * Also enforces the best practice of using an UncaughtExceptionHandler on each thread pool thread.  The default
- * uncaught exception handler simply logs the exception.
+ *
+ * <p>setName() must be called before newThread() or getThreadGroup() or an {@link IllegalStateException} will be thrown</p>
+ *
+ * <p>setName() cannot be called more than once  or an {@link IllegalStateException} will be thrown</p>
+ *
+ * <p>Also enforces the best practice of using an UncaughtExceptionHandler on each thread pool thread.  The default
+ * uncaught exception handler simply logs the exception.</p>
  * 
  * @author bwheeler
  */

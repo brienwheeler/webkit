@@ -58,7 +58,7 @@ public abstract class GeneratedIdEntityBase<EntityType extends GeneratedIdEntity
     }
     
     /**
-     * @return "[ClassName:unpersisted]" or "[ClassName:<id>]" 
+     * @return "[ClassName:unpersisted]" or "[ClassName:OBJECT_ID]"
      */
     @Override
     public String toString()

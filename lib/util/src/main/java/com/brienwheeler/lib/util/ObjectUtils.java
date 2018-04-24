@@ -55,8 +55,8 @@ public class ObjectUtils
 	
 	/**
 	 * Return a unique identification String for an object, consisting of its simple class name
-	 * followed by its {@link System.identityHashCode()}
-	 * @param object
+	 * followed by its @link System.identityHashCode()
+	 * @param object the object to create a unique id for
 	 * @return unique identifier string
 	 */
 	public static String getUniqueId(Object object)

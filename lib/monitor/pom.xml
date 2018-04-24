@@ -66,11 +66,6 @@
                             <goal>compile</goal>
                             <goal>test-compile</goal>
                         </goals>
-                        <configuration>
-                            <source>${maven.compiler.source}</source>
-                            <target>${maven.compiler.target}</target>
-                            <forceAjcCompile>true</forceAjcCompile>
-                        </configuration>
                     </execution>
                 </executions>
             </plugin>

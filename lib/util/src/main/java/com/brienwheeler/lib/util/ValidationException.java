@@ -43,6 +43,8 @@ public class ValidationException extends RuntimeException
 
     /**
      * Construct a {@link ValidationException} with a message detail
+     *
+     * @param message the exception message
      */
     public ValidationException(String message)
     {
@@ -52,6 +54,9 @@ public class ValidationException extends RuntimeException
     /**
      * Construct a {@link ValidationException} with a message detail and an
      * underlying cause
+     *
+     * @param message the exception message
+     * @param cause the underlying cause
      */
     public ValidationException(String message, Throwable cause)
     {
@@ -60,6 +65,8 @@ public class ValidationException extends RuntimeException
 
     /**
      * Construct a {@link ValidationException} with an underlying cause
+     *
+     * @param cause the underlying cause
      */
     public ValidationException(Throwable cause)
     {

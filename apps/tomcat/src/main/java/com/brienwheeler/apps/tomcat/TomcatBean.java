@@ -48,19 +48,16 @@ import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletResponse;
 
 import com.sun.org.apache.xerces.internal.impl.dv.util.Base64;
-import org.apache.catalina.Context;
-import org.apache.catalina.Lifecycle;
-import org.apache.catalina.LifecycleEvent;
-import org.apache.catalina.LifecycleListener;
+import org.apache.catalina.*;
 import org.apache.catalina.connector.Connector;
 import org.apache.catalina.core.StandardContext;
-import org.apache.catalina.deploy.FilterDef;
-import org.apache.catalina.deploy.FilterMap;
-import org.apache.catalina.filters.FilterBase;
 import org.apache.catalina.filters.HttpHeaderSecurityFilter;
 import org.apache.catalina.startup.Tomcat;
+import org.apache.catalina.valves.ErrorReportValve;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.tomcat.util.descriptor.web.FilterDef;
+import org.apache.tomcat.util.descriptor.web.FilterMap;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.openssl.PEMKeyPair;
 import org.bouncycastle.openssl.PEMParser;
@@ -73,27 +70,28 @@ public class TomcatBean implements InitializingBean, DisposableBean
 {
 	private static final Log log = LogFactory.getLog(TomcatBean.class);
 
-  private static final Pattern ITEM_END_PATTERN = Pattern.compile("-+END (.*PRIVATE KEY|CERTIFICATE)-+");
-  private static final Pattern KEY_PATTERN = Pattern.compile("-+BEGIN (.*)PRIVATE KEY-+([^-]*)-+END .*PRIVATE KEY-+");
-  private static final Pattern CERT_PATTERN = Pattern.compile("-+BEGIN CERTIFICATE-+([^-]*)-+END CERTIFICATE-+");
+    private static final Pattern ITEM_END_PATTERN = Pattern.compile("-+END (.*PRIVATE KEY|CERTIFICATE)-+");
+    private static final Pattern KEY_PATTERN = Pattern.compile("-+BEGIN (.*)PRIVATE KEY-+([^-]*)-+END .*PRIVATE KEY-+");
+    private static final Pattern CERT_PATTERN = Pattern.compile("-+BEGIN CERTIFICATE-+([^-]*)-+END CERTIFICATE-+");
 
-  private static final String characters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+    private static final String characters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
 
 	private int port;
-  private int sslPort;
-  private int sessionTimeout;
-  private File sslKeyFile;
-  private File sslCertFile;
+    private int sslPort;
+    private int sessionTimeout;
+    private File sslKeyFile;
+    private File sslCertFile;
 	private String baseDirectory;
 	private String webAppBase = null;
 	private String contextRoot = null;
 	private String sslProperties = null;
 	private boolean addResponseSecurityHeaders = false;
 	private String antiClickJackingOption = null;
-  private String antiClickJackingUri = null;
+    private String antiClickJackingUri = null;
 	private boolean hstsIncludeSubdomains = false;
 	private String additionalHeaders = null;
 	private int hstsMaxAgeSeconds = 0;
+	private boolean showServerInfoOnError = true;
 
 	private final Tomcat tomcat;
 	
@@ -107,9 +105,17 @@ public class TomcatBean implements InitializingBean, DisposableBean
 	{
 		tomcat.setBaseDir(baseDirectory);
 		tomcat.getHost().setAppBase(baseDirectory);
-    configureNetwork();
+		configureNetwork();
 		extractWarFile();
 		tomcat.start();
+
+		if (!showServerInfoOnError) {
+            for (Valve valve : tomcat.getHost().getPipeline().getValves()) {
+                if (valve instanceof ErrorReportValve) {
+                    ((ErrorReportValve) valve).setShowServerInfo(false);
+                }
+            }
+        }
 	}
 
 	@Override
@@ -142,67 +148,70 @@ public class TomcatBean implements InitializingBean, DisposableBean
 		this.port = port;
 	}
 
-  public void setSessionTimeout(int sessionTimeout) {
-    this.sessionTimeout = sessionTimeout;
-  }
+    public void setSessionTimeout(int sessionTimeout) {
+        this.sessionTimeout = sessionTimeout;
+    }
 
-  @Required
-  public void setSslProperties(String sslProperties) {
-    this.sslProperties = sslProperties;
-  }
+    @Required
+    public void setSslProperties(String sslProperties) {
+        this.sslProperties = sslProperties;
+    }
 
-  @Required
-  public void setSslPort(int sslPort)
-    {
+    @Required
+    public void setSslPort(int sslPort) {
         this.sslPort = sslPort;
     }
 
-  @Required
-  public void setSslKeyFile(File sslKeyFile)
-    {
+    @Required
+    public void setSslKeyFile(File sslKeyFile) {
         this.sslKeyFile = sslKeyFile;
     }
 
-  @Required
-  public void setSslCertFile(File sslCertFile)
-    {
+    @Required
+    public void setSslCertFile(File sslCertFile) {
         this.sslCertFile = sslCertFile;
     }
 
-  @Required
-  public void setAddResponseSecurityHeaders(boolean addResponseSecurityHeaders) {
-    this.addResponseSecurityHeaders = addResponseSecurityHeaders;
-  }
+    @Required
+    public void setAddResponseSecurityHeaders(boolean addResponseSecurityHeaders) {
+        this.addResponseSecurityHeaders = addResponseSecurityHeaders;
+    }
 
-  @Required
-  public void setAntiClickJackingOption(String antiClickJackingOption) {
-    this.antiClickJackingOption = antiClickJackingOption;
-  }
+    @Required
+    public void setAntiClickJackingOption(String antiClickJackingOption) {
+        this.antiClickJackingOption = antiClickJackingOption;
+    }
 
-  @Required
-  public void setAntiClickJackingUri(String antiClickJackingUri) {
-    this.antiClickJackingUri = antiClickJackingUri;
-  }
+    @Required
+    public void setAntiClickJackingUri(String antiClickJackingUri) {
+        this.antiClickJackingUri = antiClickJackingUri;
+    }
 
-  @Required
-  public void setHstsIncludeSubdomains(boolean hstsIncludeSubdomains) {
-    this.hstsIncludeSubdomains = hstsIncludeSubdomains;
-  }
+    @Required
+    public void setHstsIncludeSubdomains(boolean hstsIncludeSubdomains) {
+        this.hstsIncludeSubdomains = hstsIncludeSubdomains;
+    }
 
-  @Required
-  public void setHstsMaxAgeSeconds(int hstsMaxAgeSeconds) {
-    this.hstsMaxAgeSeconds = hstsMaxAgeSeconds;
-  }
+    @Required
+    public void setHstsMaxAgeSeconds(int hstsMaxAgeSeconds) {
+        this.hstsMaxAgeSeconds = hstsMaxAgeSeconds;
+    }
 
-  @Required
-  public void setAdditionalHeaders(String additionalHeaders) {
-    this.additionalHeaders = additionalHeaders;
-  }
+    @Required
+    public void setAdditionalHeaders(String additionalHeaders) {
+        this.additionalHeaders = additionalHeaders;
+    }
 
-  private void configureNetwork() throws Exception
+    @Required
+    public void setShowServerInfoOnError(boolean showServerInfoOnError) {
+        this.showServerInfoOnError = showServerInfoOnError;
+    }
+
+    private void configureNetwork() throws Exception
     {
         if (port > 0) {
             tomcat.setPort(port);
+            tomcat.getConnector(); // seems to be needed as of Tomcat 9.0.X to ensure a connector exists
         }
         else {
             tomcat.getService().removeConnector(tomcat.getConnector());
@@ -256,7 +265,7 @@ public class TomcatBean implements InitializingBean, DisposableBean
         }
     }
 
-  private void extractWarFile()
+    private void extractWarFile()
 	{
 		if (webAppBase != null && webAppBase.length() > 0) {
 			ProtectionDomain protectionDomain = this.getClass().getProtectionDomain();
@@ -309,23 +318,23 @@ public class TomcatBean implements InitializingBean, DisposableBean
 				if (context instanceof StandardContext)
 					((StandardContext) context).setUnpackWAR(false);
 
-        // replace standard DefaultWebXmlListener with our subclass that sets the session
-        // timeout after calling its super method (which sets session timeout to 30)
-        for (LifecycleListener listener : context.findLifecycleListeners()) {
-          if (listener instanceof Tomcat.DefaultWebXmlListener) {
-            context.removeLifecycleListener(listener);
-            break;
-          }
-        }
-        context.addLifecycleListener(new MyDefaultWebXmlListener());
+                // replace standard DefaultWebXmlListener with our subclass that sets the session
+                // timeout after calling its super method (which sets session timeout to 30)
+                for (LifecycleListener listener : context.findLifecycleListeners()) {
+                    if (listener instanceof Tomcat.DefaultWebXmlListener) {
+                        context.removeLifecycleListener(listener);
+                        break;
+                    }
+                }
+                context.addLifecycleListener(new MyDefaultWebXmlListener());
 
-        if (addResponseSecurityHeaders) {
-          configureResponseSecurityHeaders(context);
-        }
+                if (addResponseSecurityHeaders) {
+                    configureResponseSecurityHeaders(context);
+                }
 
-        if (!StringUtils.isEmpty(additionalHeaders)) {
-          configureAdditionalHeaders(context);
-        }
+                if (!StringUtils.isEmpty(additionalHeaders)) {
+                    configureAdditionalHeaders(context);
+                }
 			}
 			catch (Exception e) {
 				throw new RuntimeException("error extracting WAR file", e);
@@ -333,54 +342,56 @@ public class TomcatBean implements InitializingBean, DisposableBean
 		}
 	}
 
-  private void configureResponseSecurityHeaders(Context context) {
-	  FilterDef httpHeaderFilter = new FilterDef();
-	  httpHeaderFilter.setFilterName(HttpHeaderSecurityFilter.class.getSimpleName());
-	  httpHeaderFilter.setFilterClass(HttpHeaderSecurityFilter.class.getName());
-	  httpHeaderFilter.setAsyncSupported("true");
+    private void configureResponseSecurityHeaders(Context context)
+    {
+        FilterDef httpHeaderFilter = new FilterDef();
+        httpHeaderFilter.setFilterName(HttpHeaderSecurityFilter.class.getSimpleName());
+        httpHeaderFilter.setFilterClass(HttpHeaderSecurityFilter.class.getName());
+        httpHeaderFilter.setAsyncSupported("true");
 
-	  // X-Frame-Options
-    httpHeaderFilter.addInitParameter("antiClickJackingEnabled", "true");
-    httpHeaderFilter.addInitParameter("antiClickJackingOption", antiClickJackingOption);
-    if (!StringUtils.isEmpty(antiClickJackingUri))
-      httpHeaderFilter.addInitParameter("antiClickJackingUri", antiClickJackingUri);
+        // X-Frame-Options
+        httpHeaderFilter.addInitParameter("antiClickJackingEnabled", "true");
+        httpHeaderFilter.addInitParameter("antiClickJackingOption", antiClickJackingOption);
+        if (!StringUtils.isEmpty(antiClickJackingUri))
+            httpHeaderFilter.addInitParameter("antiClickJackingUri", antiClickJackingUri);
 
-    // X-XSS-Protection
-    httpHeaderFilter.addInitParameter("xssProtectionEnabled", "true");
+        // X-XSS-Protection
+        httpHeaderFilter.addInitParameter("xssProtectionEnabled", "true");
 
-    // X-Content-Type-Options
-    httpHeaderFilter.addInitParameter("blockContentTypeSniffingEnabled", "true");
+        // X-Content-Type-Options
+        httpHeaderFilter.addInitParameter("blockContentTypeSniffingEnabled", "true");
 
-    // HTTP Strict-Transport-Security
-    httpHeaderFilter.addInitParameter("hstsEnabled", "true");
-    httpHeaderFilter.addInitParameter("hstsIncludeSubDomains", Boolean.toString(hstsIncludeSubdomains));
-    httpHeaderFilter.addInitParameter("hstsMaxAgeSeconds", Integer.toString(hstsMaxAgeSeconds));
+        // HTTP Strict-Transport-Security
+        httpHeaderFilter.addInitParameter("hstsEnabled", "true");
+        httpHeaderFilter.addInitParameter("hstsIncludeSubDomains", Boolean.toString(hstsIncludeSubdomains));
+        httpHeaderFilter.addInitParameter("hstsMaxAgeSeconds", Integer.toString(hstsMaxAgeSeconds));
 
-	  context.addFilterDef(httpHeaderFilter);
+        context.addFilterDef(httpHeaderFilter);
 
-	  FilterMap httpHeaderFilterMap = new FilterMap();
-	  httpHeaderFilterMap.setFilterName(HttpHeaderSecurityFilter.class.getSimpleName());
-	  httpHeaderFilterMap.addURLPattern("/*");
+        FilterMap httpHeaderFilterMap = new FilterMap();
+        httpHeaderFilterMap.setFilterName(HttpHeaderSecurityFilter.class.getSimpleName());
+        httpHeaderFilterMap.addURLPattern("/*");
 
-	  context.addFilterMap(httpHeaderFilterMap);
-  }
+        context.addFilterMap(httpHeaderFilterMap);
+    }
 
-  private void configureAdditionalHeaders(Context context) {
-    FilterDef additionalHeadersFilter = new FilterDef();
-    additionalHeadersFilter.setFilterName(AdditionalHeadersFilter.class.getSimpleName());
-    additionalHeadersFilter.setFilterClass(AdditionalHeadersFilter.class.getName());
-    additionalHeadersFilter.setAsyncSupported("true");
+    private void configureAdditionalHeaders(Context context)
+    {
+        FilterDef additionalHeadersFilter = new FilterDef();
+        additionalHeadersFilter.setFilterName(AdditionalHeadersFilter.class.getSimpleName());
+        additionalHeadersFilter.setFilterClass(AdditionalHeadersFilter.class.getName());
+        additionalHeadersFilter.setAsyncSupported("true");
 
-    additionalHeadersFilter.addInitParameter("additionalHeaders", additionalHeaders);
+        additionalHeadersFilter.addInitParameter("additionalHeaders", additionalHeaders);
 
-    context.addFilterDef(additionalHeadersFilter);
+        context.addFilterDef(additionalHeadersFilter);
 
-    FilterMap additionalHeadersFilterMap = new FilterMap();
-    additionalHeadersFilterMap.setFilterName(AdditionalHeadersFilter.class.getSimpleName());
-    additionalHeadersFilterMap.addURLPattern("/*");
+        FilterMap additionalHeadersFilterMap = new FilterMap();
+        additionalHeadersFilterMap.setFilterName(AdditionalHeadersFilter.class.getSimpleName());
+        additionalHeadersFilterMap.addURLPattern("/*");
 
-    context.addFilterMap(additionalHeadersFilterMap);
-  }
+        context.addFilterMap(additionalHeadersFilterMap);
+    }
 
     private RSAPrivateKey readKeyFile() throws IOException, NoSuchAlgorithmException, InvalidKeySpecException {
 	      List<String> items = readPEMFileIntoItems(sslKeyFile);
@@ -422,7 +433,7 @@ public class TomcatBean implements InitializingBean, DisposableBean
         if (items.size() < 1)
             throw new IllegalArgumentException("invalid certificate file contents");
 
-      CertificateFactory certificateFactory = CertificateFactory.getInstance("X.509");
+        CertificateFactory certificateFactory = CertificateFactory.getInstance("X.509");
         ArrayList<X509Certificate> certificates = new ArrayList<X509Certificate>();
         for (int i=0; i<items.size(); i++) {
           Matcher matcher = CERT_PATTERN.matcher(items.get(i));
@@ -434,33 +445,33 @@ public class TomcatBean implements InitializingBean, DisposableBean
     }
 
     private List<String> readPEMFileIntoItems(File inFile) throws IOException {
-      ArrayList<String> items = new ArrayList<String>();
-      StringBuilder buffer = new StringBuilder();
-      Matcher endItemMatcher = ITEM_END_PATTERN.matcher("");
+        ArrayList<String> items = new ArrayList<String>();
+        StringBuilder buffer = new StringBuilder();
+        Matcher endItemMatcher = ITEM_END_PATTERN.matcher("");
 
-      BufferedReader reader = new BufferedReader(new FileReader(inFile));
-      for (String line=reader.readLine(); line!=null; line=reader.readLine()) {
-        buffer.append(line);
-        if (endItemMatcher.reset(line).matches()) {
-          items.add(buffer.toString());
-          buffer = new StringBuilder();
+        BufferedReader reader = new BufferedReader(new FileReader(inFile));
+        for (String line=reader.readLine(); line!=null; line=reader.readLine()) {
+            buffer.append(line);
+            if (endItemMatcher.reset(line).matches()) {
+                items.add(buffer.toString());
+                buffer = new StringBuilder();
+            }
         }
-      }
-      reader.close();
+        reader.close();
 
-      return items;
+        return items;
     }
 
-  private class MyDefaultWebXmlListener extends Tomcat.DefaultWebXmlListener {
-    @Override
-    public void lifecycleEvent(LifecycleEvent event) {
-      super.lifecycleEvent(event);
-      if (Lifecycle.BEFORE_START_EVENT.equals(event.getType())) {
-        if (event.getLifecycle() instanceof StandardContext && sessionTimeout > 0) {
-          ((StandardContext) event.getLifecycle()).setSessionTimeout(sessionTimeout);
+    private class MyDefaultWebXmlListener extends Tomcat.DefaultWebXmlListener {
+        @Override
+        public void lifecycleEvent(LifecycleEvent event) {
+            super.lifecycleEvent(event);
+            if (Lifecycle.BEFORE_START_EVENT.equals(event.getType())) {
+                if (event.getLifecycle() instanceof StandardContext && sessionTimeout > 0) {
+                    ((StandardContext) event.getLifecycle()).setSessionTimeout(sessionTimeout);
+                }
+            }
         }
-      }
     }
-  }
 
 }

@@ -46,13 +46,13 @@
     </modules>
 
     <properties>
-        <maven.compiler.source>1.6</maven.compiler.source>
-        <maven.compiler.target>1.6</maven.compiler.target>
+        <maven.compiler.source>1.7</maven.compiler.source>
+        <maven.compiler.target>1.7</maven.compiler.target>
         
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         
-        <version.plugin.aspectj-maven>1.4</version.plugin.aspectj-maven>
-        <version.plugin.cobertura-maven>2.5.1</version.plugin.cobertura-maven>
+        <version.plugin.aspectj-maven>1.11</version.plugin.aspectj-maven>
+        <version.plugin.cobertura-maven>2.7</version.plugin.cobertura-maven>
         <version.plugin.exec-maven>1.2.1</version.plugin.exec-maven>
         <version.plugin.javascript-maven>2.0.0-alpha-1</version.plugin.javascript-maven>
         <version.plugin.jslint-maven>1.0.1</version.plugin.jslint-maven>
@@ -71,7 +71,7 @@
         <version.plugin.nexus-staging>1.6.5</version.plugin.nexus-staging>
 
         <version.anet-java-sdk>1.4.6</version.anet-java-sdk>
-        <version.aspectj>1.6.11</version.aspectj>
+        <version.aspectj>1.9.0</version.aspectj>
         <version.bouncycastle>1.50</version.bouncycastle>
         <version.commons-codec>1.8</version.commons-codec>
         <version.commons-logging-api>1.1</version.commons-logging-api>
@@ -97,7 +97,7 @@
         <version.slf4j-log4j12>1.7.5</version.slf4j-log4j12>
         <version.spring-core>3.2.9.RELEASE</version.spring-core>
         <version.spring-security>3.2.4.RELEASE</version.spring-security>
-        <version.tomcat>7.0.82</version.tomcat>
+        <version.tomcat>9.0.6</version.tomcat>
         <version.validation-api>1.1.0.Final</version.validation-api>
         <version.yui>3.8.0</version.yui>
     </properties>
@@ -211,6 +211,16 @@
                     <groupId>org.codehaus.mojo</groupId>
                     <artifactId>aspectj-maven-plugin</artifactId>
                     <version>${version.plugin.aspectj-maven}</version>
+                    <configuration>
+                        <showWeaveInfo>true</showWeaveInfo>
+                        <forceAjcCompile>true</forceAjcCompile>
+                        <source>${maven.compiler.target}</source>
+                        <target>${maven.compiler.target}</target>
+                        <Xlint>ignore</Xlint>
+                        <complianceLevel>${maven.compiler.target}</complianceLevel>
+                        <encoding>UTF-8</encoding>
+                        <verbose>true</verbose>
+                    </configuration>
                 </plugin>
 
                 <plugin>
@@ -823,13 +833,7 @@
                 <artifactId>tomcat-embed-jasper</artifactId>
                 <version>${version.tomcat}</version>
             </dependency>
-            
-            <dependency>
-                <groupId>org.apache.tomcat.embed</groupId>
-                <artifactId>tomcat-embed-logging-log4j</artifactId>
-                <version>${version.tomcat}</version>
-            </dependency>
-    
+
             <dependency>
                 <groupId>org.apache.tomcat</groupId>
                 <artifactId>tomcat-jasper</artifactId>

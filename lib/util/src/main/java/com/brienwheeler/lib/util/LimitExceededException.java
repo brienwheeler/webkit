@@ -43,6 +43,8 @@ public class LimitExceededException extends RuntimeException
 
     /**
      * Construct a {@link LimitExceededException} with a message detail
+     *
+     * @param message the exception message
      */
     public LimitExceededException(String message)
     {

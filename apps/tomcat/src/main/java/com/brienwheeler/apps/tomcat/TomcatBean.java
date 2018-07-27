@@ -61,6 +61,8 @@ import org.apache.tomcat.util.descriptor.web.FilterMap;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.openssl.PEMKeyPair;
 import org.bouncycastle.openssl.PEMParser;
+import org.springframework.beans.BeanWrapper;
+import org.springframework.beans.PropertyAccessorFactory;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Required;
@@ -84,6 +86,7 @@ public class TomcatBean implements InitializingBean, DisposableBean
 	private String baseDirectory;
 	private String webAppBase = null;
 	private String contextRoot = null;
+	private String contextProperties = null;
 	private String sslProperties = null;
 	private boolean addResponseSecurityHeaders = false;
 	private String antiClickJackingOption = null;
@@ -141,8 +144,13 @@ public class TomcatBean implements InitializingBean, DisposableBean
 	{
 		this.contextRoot = contextRoot;
 	}
-	
+
 	@Required
+    public void setContextProperties(String contextProperties) {
+        this.contextProperties = contextProperties;
+    }
+
+    @Required
 	public void setPort(int port)
 	{
 		this.port = port;
@@ -317,6 +325,22 @@ public class TomcatBean implements InitializingBean, DisposableBean
 				Context context = tomcat.addWebapp(launchContextRoot, warEntry.getName());
 				if (context instanceof StandardContext)
 					((StandardContext) context).setUnpackWAR(false);
+
+                if (contextProperties != null && contextProperties.trim().length() > 0) {
+                    BeanWrapper contextWrapper = PropertyAccessorFactory.forBeanPropertyAccess(context);
+                    String contextPropDefs[] = contextProperties.trim().split(";");
+                    for (String contextPropDef : contextPropDefs) {
+                        String parts[] = contextPropDef.split("=");
+                        if ((parts.length != 2) || (parts[0].trim().length() == 0) || (parts[1].trim().length() == 0)) {
+                            log.warn("invalid web context property definition -- ignoring: " + contextPropDef);
+                            continue;
+                        }
+                        String name = parts[0].trim();
+                        String value = parts[1].trim();
+                        log.info("setting Tomcat web context property: " + name + "=" + value);
+                        contextWrapper.setPropertyValue(name, value);
+                    }
+                }
 
                 // replace standard DefaultWebXmlListener with our subclass that sets the session
                 // timeout after calling its super method (which sets session timeout to 30)
